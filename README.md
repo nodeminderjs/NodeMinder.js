@@ -3,6 +3,22 @@ NodeMinder.js
 
 Linux video camera security and surveillance solution based on ZoneMinder and developed on top of a node.js stack.
 
+Release Notes
+-------------
+
+This first release is a concept proof to test some design and tools options.
+
+No configuration yet, and everything is hard coded.
+
+I'm developing this on an Ubuntu 12.04 64 bits server with a GV-800 card with an attached cheap mini-camera. The camera options are hard-coded and are the following:
+
+    device: /dev/video0
+    video format: NTSC
+    video resolution: 320x240
+    frame rate: 3 fps
+
+Nothing is optimized and I'm not a Javascript, Node.js or C++ experienced programmer. Neither I have much knowledge about V4L programming. So, how I have already said, this is only a initial concept proof to try to learn the basic concepts behind a complex software like ZoneMinder and try to do something less complex, using other concepts and technologies.
+
 Setup
 -----
 
