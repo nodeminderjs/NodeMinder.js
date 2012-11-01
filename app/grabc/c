@@ -1,0 +1,3 @@
+#!/bin/bash
+g++ grabc.cc -o grabc -w
+
