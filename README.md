@@ -36,6 +36,14 @@ Setup
 
     $ sudo node app.js
 
+  or add your user to video group with
+
+    $ sudo adduser <your_user> video
+
+  and run the app without sudo:
+
+    $ node app.js
+
 4) Open your browser in http://192.168.1.181:8080 (replace with your correct server ip/host).
 
 Contact
