@@ -1,0 +1,28 @@
+{
+    "cameras": [
+        {
+            "id": 1,
+            "descr": "IT camera 1",
+            "type": "local",
+            "device": "/dev/video0",
+            "channel": 0,
+            "format": "NTSC",
+            "palette": "BGR24",
+            "width": 320,
+            "height": 240,
+            "fps": 3
+        },
+        {
+            "id": 2
+            "descr": "IT camera 2",
+            "type": "local",
+            "device": "/dev/video1",
+            "channel": 0,
+            "format": "NTSC",
+            "palette": "BGR24",
+            "width": 320,
+            "height": 240,
+            "fps": 3
+        }
+    ]
+}
