@@ -1,5 +1,6 @@
 // Copyright NodeMinder.js
 //
+
 var app = require('http').createServer(handler),
     io  = require('socket.io').listen(app, { log: false }),
     fs  = require('fs');
