@@ -1,6 +1,5 @@
 // Copyright NodeMinder.js
 //
-
 var app = require('http').createServer(handler),
     io  = require('socket.io').listen(app, { log: false }),
     fs  = require('fs');
@@ -21,7 +20,7 @@ function start(grab_func) {
 }
 
 function handler(req, res) {
-  fs.readFile(__dirname + '/index.html', function (err, data) {
+  fs.readFile(__dirname + 'client/index.html', function (err, data) {
     if (err) {
       res.writeHead(500);
       return res.end('Error loading index.html');
