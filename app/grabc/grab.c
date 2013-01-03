@@ -28,12 +28,12 @@ struct buffer {
 };
 
 static char   *dev_name;  // ToDo: parameterize this!
-static int     fps = 2;   // ToDo: parameterize this!
+static int     fps = 3;   // ToDo: parameterize this!
 static int     fd = -1;   // device - file descriptor
 struct buffer *buffers;
-static int     frame_count = 1;
+//static int     frame_count = 1;
 
-double get_elapsed_ms(struct timeval t1, struct timeval t2)
+long get_elapsed_ms(struct timeval t1, struct timeval t2)
 {
   /*
   Compute and return the elapsed time in ms
@@ -243,7 +243,6 @@ static void init_device(void)
     perror ("VIDIOC_S_STD");
     exit (EXIT_FAILURE);
   }
-
 }
 
 static void process_image(const void *p, int size)
@@ -284,19 +283,18 @@ static int read_frame(void)
 
 static void mainloop(void)
 {
-  unsigned int count = frame_count;
-  struct timeval t1, t2;
+  //unsigned int count = frame_count;
+  struct timeval t1, t2, tv;
+  int r;
 
   while (1) {
 
     // get start time
     gettimeofday(&t1, NULL);
 
-    while (count-- > 0) {
+    //while (count-- > 0) {
       for (;;) {
         fd_set fds;
-        struct timeval tv;
-        int r;
 
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
@@ -324,12 +322,14 @@ static void mainloop(void)
         }
         /* EAGAIN - continue select loop. */
       } // for
-    }   // while
+    //}   // while
 
     // get end time
     gettimeofday(&t2, NULL);
 
     // sleep
+    fprintf(stderr, "get_elapsed_ms: %d ms\n", get_elapsed_ms(t1, t2));
+    fflush(stderr);
     xsleep(0, 1000/fps - get_elapsed_ms(t1, t2));
 
   } // while (1)
