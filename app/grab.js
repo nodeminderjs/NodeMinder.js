@@ -1,52 +1,42 @@
 // Copyright NodeMinder.js
 //
 var spawn = require('child_process').spawn;
-
-var formatDateTime = require('./libjs').formatDateTime;
+var fs    = require('fs'); 
 
 function grabFrame(socket) {
-  var grab   = spawn('grabc/grabc', []),
-      ffmpeg = spawn('ffmpeg', [
-                                '-loglevel', 'quiet',
-                                '-pix_fmt',  'bgr24',
-                                '-s',        '320x240',
-                                '-f',        'rawvideo',
-                                '-i',        'pipe:0',
-                                '-f',        'image2',
-                                'pipe:1'
-                               ],
-                               { stdio: ['pipe', 'pipe', 'ignore'] });
-
-  var image64 = '';
-  
-  grab.stdout.pipe(ffmpeg.stdin);  
+  //var grab = spawn('/usr/bin/motion',
+  var grab = spawn('/home/user/share/motion/motion-svn-trunk/motion',
+                   [
+                     '-n',
+                     '-c', 'config/motion.conf'
+                   ]);
   
   //
   // grab
   //
 
-  grab.stderr.on('data', function(data) {
-    console.log('grab stderr: ' + data);
-  });
+  grab.stdout.on('data', function(data) {
+    // Commands:
+    // J01 - avaiable jpeg image of camera 1 in /dev/shm/1.jpg
+    // S01 - motion event start in camera 1
+    // E01 - motion event end in camera 1
+    var msg = data.toString('ascii').substr(0,3);
+    var cmd = msg[0];
+    var cam = msg.substr(1,2);
   
-  //
-  // ffmpeg
-  //
-
-  ffmpeg.stdout.on('data', function(data) {
-    // Convert to base64
-    image64 += data.toString('base64');
-  });
-  
-  ffmpeg.on('exit', function(code) {
-    if (code !== 0) {
-      console.log('ffmpeg process exited with code ' + code);
-    }
-    // Send to socket
-    socket.emit('image', {
-        time: formatDateTime(),
-        jpg:  'data:image/gif;base64,' + image64
+    if (cmd == 'J') {
+      fs.readFile('/tmp/motion/shm/'+cam+'.jpg', 'base64', function(err, data) {
+        if (err) throw err;
+        socket.emit('image'+cam, {
+          'jpg': 'data:image/gif;base64,' + data
+        });
       });
+    } else {
+      socket.emit('status', {
+        'cam': cam,
+        'st': cmd
+      })
+    }
   });
 }
   

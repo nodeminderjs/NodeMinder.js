@@ -6,15 +6,19 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <getopt.h>             /* getopt_long() */
+#include <getopt.h>             // getopt_long()
 
-#include <fcntl.h>              /* low-level i/o */
+#include <fcntl.h>              // low-level i/o
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
+#include <sys/time.h>           // for gettimeofday()
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 
 #include <linux/videodev2.h>
+
+#include "encode.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -23,10 +27,62 @@ struct buffer {
   size_t  length;
 };
 
-static char   *dev_name;
-static int     fd = -1;
+static char   *dev_name;  // ToDo: parameterize this!
+static int     fps = 2;   // ToDo: parameterize this!
+static int     fd = -1;   // device - file descriptor
 struct buffer *buffers;
 static int     frame_count = 1;
+
+double get_elapsed_ms(struct timeval t1, struct timeval t2)
+{
+  /*
+  Compute and return the elapsed time in ms
+
+  Usage example:
+
+    timeval t1, t2;
+
+    // start timer
+    gettimeofday(&t1, NULL);
+
+    // do something
+    // ...
+
+    // stop timer
+    gettimeofday(&t2, NULL);
+
+    cout << get_elapsed_ms(t1, t2) << " ms.\n";
+  */
+  long elapsedTime;
+  elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000;      // sec to ms
+  elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000;   // us to ms, rounding down
+  return elapsedTime;
+}
+
+int xsleep(time_t s, long ms)
+{
+  struct timespec tv;
+  // Construct the timespec from the number of whole seconds...
+  tv.tv_sec = s;
+  // ...and the remainder in miliseconds converted to nanoseconds
+  tv.tv_nsec = ms * 1e+6;  // ms must be in the 0..999 interval
+
+  while (1) {
+    // Sleep for the time specified in tv. If interrupted by a
+    // signal, place the remaining time left to sleep back into tv.
+    int rval = nanosleep(&tv, &tv);
+    if (rval == 0)
+      // Completed the entire sleep time; all done.
+      return 0;
+    else if (errno == EINTR)
+      // Interrupted by a signal. Try again.
+      continue;
+    else
+      // Some other error; bail out.
+      return rval;
+  }
+  return 0;
+}
 
 static void errno_exit(const char *s)
 {
@@ -79,7 +135,7 @@ static void close_device(void)
 
 static void init_read(unsigned int buffer_size)
 {
-  buffers = (buffer*) calloc(1, sizeof(*buffers));
+  buffers = (struct buffer*) calloc(1, sizeof(*buffers));
 
   if (!buffers) {
     fprintf(stderr, "Out of memory\n");
@@ -122,10 +178,10 @@ static void init_device(void)
 
   CLEAR(fmt);
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  fmt.fmt.pix.width       = 320;
-  fmt.fmt.pix.height      = 240;
+  fmt.fmt.pix.width       = 320;          // ToDo: parameterize this!
+  fmt.fmt.pix.height      = 240;          // ToDo: parameterize this!
   //fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-  fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
+  fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;  // ToDo: parameterize this!
   //fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 
   if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
@@ -148,21 +204,28 @@ static void init_device(void)
   // Select the video input
   // http://linuxtv.org/downloads/v4l-dvb-apis/video.html
   //
+  int channel = 0;      // ToDo: parameterize this!
+
+  if (-1 == xioctl (fd, VIDIOC_S_INPUT, &channel)) {
+    perror ("VIDIOC_S_INPUT");
+    exit (EXIT_FAILURE);
+  }
 
   //
-  // Selecting a new video standard
+  // Selec a new video standard
   //
   struct v4l2_input input;
   v4l2_std_id std_id;
 
-  memset (&input, 0, sizeof (input));
+  memset (&input, 0, sizeof(input));
 
-  if (-1 == ioctl (fd, VIDIOC_G_INPUT, &input.index)) {
+  // ToDo: input.index is already set above in the channel var
+  if (-1 == xioctl (fd, VIDIOC_G_INPUT, &input.index)) {
     perror ("VIDIOC_G_INPUT");
     exit (EXIT_FAILURE);
   }
 
-  if (-1 == ioctl (fd, VIDIOC_ENUMINPUT, &input)) {
+  if (-1 == xioctl (fd, VIDIOC_ENUMINPUT, &input)) {
     perror ("VIDIOC_ENUM_INPUT");
     exit (EXIT_FAILURE);
   }
@@ -172,9 +235,9 @@ static void init_device(void)
     exit (EXIT_FAILURE);
   }
 
-  /* Note this is also supposed to work when only B or G/PAL is supported. */
+  // Note this is also supposed to work when only B or G/PAL is supported.
 
-  std_id = V4L2_STD_NTSC;
+  std_id = V4L2_STD_NTSC;     // ToDo: parameterize this!
 
   if (-1 == ioctl (fd, VIDIOC_S_STD, &std_id)) {
     perror ("VIDIOC_S_STD");
@@ -185,11 +248,15 @@ static void init_device(void)
 
 static void process_image(const void *p, int size)
 {
-  fwrite(p, size, 1, stdout);
+  //fprintf(stderr, "process_image()...");
+  //fprintf(stderr, "%d", size);
+  //fwrite(p, size, 1, stdout);
+  encode2jpeg("/dev/shm/cam01.jpg", p);
+  fprintf(stdout, "J01");
+  fflush(stdout);
 
   fflush(stderr);
   //fprintf(stderr, ".");
-  fflush(stdout);
 }
 
 static int read_frame(void)
@@ -217,43 +284,55 @@ static int read_frame(void)
 
 static void mainloop(void)
 {
-  unsigned int count;
-  count = frame_count;
+  unsigned int count = frame_count;
+  struct timeval t1, t2;
 
-  while (count-- > 0) {
-    for (;;) {
-      fd_set fds;
-      struct timeval tv;
-      int r;
+  while (1) {
 
-      FD_ZERO(&fds);
-      FD_SET(fd, &fds);
+    // get start time
+    gettimeofday(&t1, NULL);
 
-      /* Timeout. */
-      tv.tv_sec = 2;
-      tv.tv_usec = 0;
+    while (count-- > 0) {
+      for (;;) {
+        fd_set fds;
+        struct timeval tv;
+        int r;
 
-      r = select(fd + 1, &fds, NULL, NULL, &tv);
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
 
-      if (-1 == r) {
-        if (EINTR == errno) {
-          continue;
+        /* Timeout. */
+        tv.tv_sec = 2;
+        tv.tv_usec = 0;
+
+        r = select(fd + 1, &fds, NULL, NULL, &tv);
+
+        if (-1 == r) {
+          if (EINTR == errno) {
+            continue;
+          }
+          errno_exit("select");
         }
-        errno_exit("select");
-      }
 
-      if (0 == r) {
-        fprintf(stderr, "select timeout\n");
-        exit(EXIT_FAILURE);
-      }
+        if (0 == r) {
+          fprintf(stderr, "select timeout\n");
+          exit(EXIT_FAILURE);
+        }
 
-      if (read_frame()) {
-        break;
-      }
+        if (read_frame()) {
+          break;
+        }
+        /* EAGAIN - continue select loop. */
+      } // for
+    }   // while
 
-      /* EAGAIN - continue select loop. */
-    }
-  }
+    // get end time
+    gettimeofday(&t2, NULL);
+
+    // sleep
+    xsleep(0, 1000/fps - get_elapsed_ms(t1, t2));
+
+  } // while (1)
 }
 
 static void usage(FILE *fp, int argc, char **argv)

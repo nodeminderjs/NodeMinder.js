@@ -5,12 +5,12 @@ var fs = require('fs');
 var cfg;
 
 function loadConfig() {
-  cfg = JSON.parse(fs.readFileSync('nodeminderjs_cfg', 'utf8'));
+  cfg = JSON.parse(fs.readFileSync('config/nodeminderjs.conf', 'utf8'));
   GLOBAL.cfg = cfg;
 }
 
 function saveConfig() {
-  fs.writeFileSync('nodeminderjs_cfg', JSON.stringify(cfg, null, 4), 'utf8');
+  fs.writeFileSync('config/nodeminderjs.conf', JSON.stringify(cfg, null, 4), 'utf8');
 }
 
 function getCameraCfg(id) {

@@ -2,20 +2,48 @@
 <html>
 <head>
 <title>NodeMinder.js</title>
+<style>
+body     {background-color: black; color: white;}
+.camera  {display: inline;}
+.idle    {border: 4px solid blue;}
+.alarmed {border: 4px solid red;}
+</style>
 </head>
 <body>
-<div id="camera" style="width:320px;">
-<div id="time" style="background-color:navy; color:white;">00:00:00</div>
-<img src="" />
+<div id="cam01" class="camera">
+  <div class="image">
+    <img id="img01" class="idle" src="#" width="320" height="240" />
+  </div>
+  <div class="info">
+  </div>
 </div>
+<div id="cam02" class="camera">
+<img id="img02" class="idle" src="#" width="320" height="240" />
+</div>
+<div id="debug"></div>
 </body>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
   var socket = io.connect('http://192.168.1.181:8080/');
-  socket.on('image', function (data) {
-    $('#camera #time').text(data.time);
-    $('#camera img').attr('src', data.jpg);
+
+  socket.on('image01', function(data) {
+    $('#cam01 img').attr('src', data.jpg);
+    $('#cam01 div.info').text(data.time);
+    $('#debug').prepend(data.time + '<br />');
+  });
+
+  socket.on('image02', function(data) {
+    $('#cam02 img').attr('src', data.jpg);
+  });
+
+  socket.on('status', function(data) {
+    $('#debug').prepend('status: ' + data.st + ' cam: ' + data.cam + '<br />');
+    if (data.st == 'S') {
+      $('#img'+data.cam).removeClass('idle').addClass('alarmed');
+    } else {
+      $('#img'+data.cam).removeClass('alarmed').addClass('idle');
+    }
   });
 </script>
 </html>
