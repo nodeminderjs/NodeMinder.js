@@ -5,8 +5,17 @@ var fs    = require('fs');
 
 var formatDateTime = require('./libjs').formatDateTime;
 
-function grabFrame(socket) {
-  var grab = spawn('grabc/grabc', []);
+function grabFrame(socket, camera, device) {
+  var grab = spawn('grabc/grabc',
+                   [
+                     '-c', camera,
+                     '-d', device
+                   ]);
+
+  socket.on('disconnect', function() {
+    console.log('disconnect - socket:' + socket.id);
+    grab.kill();
+  });
 
   //
   // grab

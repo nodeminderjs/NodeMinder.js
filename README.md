@@ -6,18 +6,25 @@ Linux video camera security and surveillance solution based on ZoneMinder and de
 Release Notes
 -------------
 
-This first release is a concept proof to test some design and tools options.
+This second release is again a concept proof to test some design and tools options.
 
-No configuration yet, and everything is hard coded.
+No configuration yet, and almost everything is hard coded.
 
-I'm developing this on an Ubuntu 12.04 64 bits server with a GV-800 card with an attached cheap mini-camera. The camera options are hard-coded and are the following:
+I'm developing this on an Ubuntu 12.04 64 bits server with a GV-800 card with an attached cheap mini-camera. The cameras options are hard-coded and are the following:
 
+    Camera 01
     device: /dev/video0
     video format: NTSC
     video resolution: 320x240
     frame rate: 3 fps
 
-Nothing is optimized and I'm not a Javascript, Node.js or C++ experienced programmer. Neither I have much knowledge about V4L programming. So, how I have already said, this is only a initial concept proof to try to learn the basic concepts behind a complex software like ZoneMinder and try to do something less complex, using other concepts and technologies.
+    Camera 02
+    device: /dev/video1
+    video format: NTSC
+    video resolution: 320x240
+    frame rate: 3 fps
+
+Nothing is optimized and I'm not a Javascript, Node.js or C++ experienced programmer. Neither I have much knowledge about V4L programming. So, how I have initially said, this is only a initial concept proof to try to learn the basic concepts behind a complex software like ZoneMinder and try to do something less complex, using other concepts and technologies.
 
 Setup
 -----
@@ -25,8 +32,10 @@ Setup
 1) Compile the c++ source code:
 
     $ cd grabc  
-    $ ./c  
+    $ make  
     $ cd ..
+    
+It uses libavcodec library from the FFmpeg projetc. 
 
 2) Modify the following line in index.html to match your server ip: 
 

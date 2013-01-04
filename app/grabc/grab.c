@@ -27,7 +27,9 @@ struct buffer {
   size_t  length;
 };
 
-static char   *dev_name;  // ToDo: parameterize this!
+static char   *dev_name;
+static char   *camera;
+
 static int     fps = 3;   // ToDo: parameterize this!
 static int     fd = -1;   // device - file descriptor
 struct buffer *buffers;
@@ -247,11 +249,16 @@ static void init_device(void)
 
 static void process_image(const void *p, int size)
 {
+  char file[80];
+  char cmd[80];
+  sprintf(file, "/dev/shm/cam%s.jpg", camera);
+  sprintf(cmd, "J%s", camera);
+
   //fprintf(stderr, "process_image()...");
   //fprintf(stderr, "%d", size);
   //fwrite(p, size, 1, stdout);
-  encode2jpeg("/dev/shm/cam01.jpg", p);
-  fprintf(stdout, "J01");
+  encode2jpeg(file);
+  fprintf(stdout, cmd);
   fflush(stdout);
 
   fflush(stderr);
@@ -328,8 +335,8 @@ static void mainloop(void)
     gettimeofday(&t2, NULL);
 
     // sleep
-    fprintf(stderr, "get_elapsed_ms: %d ms\n", get_elapsed_ms(t1, t2));
-    fflush(stderr);
+    //fprintf(stderr, "get_elapsed_ms: %d ms\n", get_elapsed_ms(t1, t2));
+    //fflush(stderr);
     xsleep(0, 1000/fps - get_elapsed_ms(t1, t2));
 
   } // while (1)
@@ -341,16 +348,18 @@ static void usage(FILE *fp, int argc, char **argv)
       "Usage: %s [options]\n\n"
       "Version 0.1\n"
       "Options:\n"
-      "-d | --device name   Video device name [%s]\n"
+      "-c | --camera        Camera [%s]\n"
+      "-d | --device        Device [%s]\n"
       "-h | --help          Print this message\n"
       "",
-      argv[0], dev_name);
+      argv[0], camera, dev_name);
 }
 
-static const char short_options[] = "d:h";
+static const char short_options[] = "c:d:h";
 
 static const struct option
 long_options[] = {
+        { "camera", required_argument, NULL, 'c' },
         { "device", required_argument, NULL, 'd' },
         { "help",   no_argument,       NULL, 'h' },
         { 0, 0, 0, 0 }
@@ -358,7 +367,8 @@ long_options[] = {
 
 int main(int argc, char *argv[])
 {
-  dev_name = "/dev/video0";
+  //camera = "01";
+  //dev_name = "/dev/video0";
 
   for (;;) {
     int idx;
@@ -372,6 +382,10 @@ int main(int argc, char *argv[])
     switch (c) {
     case 0: /* getopt_long() flag */
         break;
+
+    case 'c':
+      camera = optarg;
+      break;
 
     case 'd':
       dev_name = optarg;
@@ -389,9 +403,12 @@ int main(int argc, char *argv[])
 
   open_device();
   init_device();
+  init_encode(buffers[0].start);
+
   //start_capturing();
   mainloop();
-  //stop_capturing();
+
+  uninit_encode();
   uninit_device();
   close_device();
 

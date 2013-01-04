@@ -4,24 +4,36 @@
 <title>NodeMinder.js</title>
 <style>
 body     {background-color: black; color: white;}
-.camera  {display: inline;}
-.idle    {border: 4px solid blue;}
-.alarmed {border: 4px solid red;}
+.camera  {float: left; margin: 2px;}
+.idle    {border: 2px solid blue;}
+.alarmed {border: 2px solid blue;}
 </style>
 </head>
+
 <body>
+
+<div class="linha">
+
 <div id="cam01" class="camera">
   <div class="image">
     <img id="img01" class="idle" src="#" width="320" height="240" />
   </div>
-  <div class="info">
-  </div>
+  <div class="info"></div>
 </div>
+
 <div id="cam02" class="camera">
-<img id="img02" class="idle" src="#" width="320" height="240" />
+  <div class="image">
+    <img id="img02" class="idle" src="#" width="320" height="240" />
+  </div>
+  <div class="info"></div>
 </div>
+
+</div>
+
 <div id="debug"></div>
+
 </body>
+
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -30,11 +42,12 @@ body     {background-color: black; color: white;}
   socket.on('image01', function(data) {
     $('#cam01 img').attr('src', data.jpg);
     $('#cam01 div.info').text(data.time);
-    $('#debug').prepend(data.time + '<br />');
+    //$('#debug').prepend(data.time + '<br />');
   });
 
   socket.on('image02', function(data) {
     $('#cam02 img').attr('src', data.jpg);
+    $('#cam02 div.info').text(data.time);
   });
 
   socket.on('status', function(data) {
@@ -46,4 +59,5 @@ body     {background-color: black; color: white;}
     }
   });
 </script>
+
 </html>

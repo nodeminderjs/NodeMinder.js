@@ -15,12 +15,15 @@ function start(route_func, grab_func) {
 
   // ToDo: rewrite this to multiple users connected
   io.sockets.on('connection', function(socket) {
-    console.log('io connection');
-    grab_func(socket);
+    console.log('connection - socket:' + socket.id);
+    grab_func(socket, '01', '/dev/video0');
+    grab_func(socket, '02', '/dev/video1');
+    
     //setInterval(function() {
     //  grab_func(socket);
     //}, 333);
   });
+  
 }
 
 function handler(req, res) {
