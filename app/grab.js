@@ -1,27 +1,46 @@
 // Copyright NodeMinder.js
 //
 var spawn = require('child_process').spawn;
-var fs    = require('fs'); 
+var fs    = require('fs');
+var io    = require('socket.io');
 
 var formatDateTime = require('./libjs').formatDateTime;
 
-function grabFrame(socket, camera, device) {
+var config = require('./config');
+
+var camSpawn = {};
+
+function grabFrame(io, socket, camera) {
+  socket.join(camera);
+
+  if (camSpawn[camera]) {
+    return;
+  }
+
+  var camCfg = config.getCamCfg(camera);
+  var device = camCfg.device;
+    
   var grab = spawn('grabc/grabc',
                    [
                      '-c', camera,
                      '-d', device
                    ]);
-
-  socket.on('disconnect', function() {
-    console.log('disconnect - socket:' + socket.id);
-    grab.kill();
-  });
+  
+  camSpawn[camera] = grab;
 
   //
   // grab
   //
 
   grab.stdout.on('data', function(data) {
+    // if no more clients subscribed to this camera, kill the camera process
+    if (io.sockets.clients(camera).length == 0) {
+      grab.kill();
+      camSpawn[camera] = null;
+      console.log('killed: ' + camera);
+      return;      
+    }
+    
     // Commands:
     // J01 - avaiable jpeg image of camera 1 in /dev/shm/cam01.jpg
     var msg = data.toString('ascii').substr(0,3);
@@ -31,7 +50,8 @@ function grabFrame(socket, camera, device) {
     if (cmd == 'J') {
       fs.readFile('/dev/shm/cam'+cam+'.jpg', 'base64', function(err, data) {
         if (err) throw err;
-        socket.emit('image'+cam, {
+        //socket.emit('image'+cam, {
+        io.sockets.in(camera).emit('image'+cam, {
            time: formatDateTime(),
            jpg: 'data:image/gif;base64,' + data
         });

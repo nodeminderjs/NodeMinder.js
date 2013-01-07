@@ -13,15 +13,16 @@ function start(route_func, grab_func) {
   app.listen(8080);
   console.log('[' + formatDateTime('y-mm-dd hh:nn') + '] Server listening on port 8080...');
 
-  // ToDo: rewrite this to multiple users connected
   io.sockets.on('connection', function(socket) {
     console.log('connection - socket:' + socket.id);
-    grab_func(socket, '01', '/dev/video0');
-    grab_func(socket, '02', '/dev/video1');
-    
-    //setInterval(function() {
-    //  grab_func(socket);
-    //}, 333);
+
+    socket.on('disconnect', function() {
+      console.log('disconnect - socket:' + socket.id);
+    });
+
+    socket.on('subscribe', function(data) {
+      grab_func(io, socket, data.camera);
+    });
   });
   
 }

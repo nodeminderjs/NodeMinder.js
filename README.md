@@ -10,7 +10,7 @@ This second release is again a concept proof to test some design and tools optio
 
 No configuration yet, and almost everything is hard coded.
 
-I'm developing this on an Ubuntu 12.04 64 bits server with a GV-800 card with an attached cheap mini-camera. The cameras options are hard-coded and are the following:
+I'm developing this on an Ubuntu 12.04 64 bits server with a GV-800 card with two attached cheap mini-cameras. The cameras options are hard-coded and are the following:
 
     Camera 01
     device: /dev/video0
@@ -35,7 +35,7 @@ Setup
     $ make  
     $ cd ..
     
-It uses libavcodec library from the FFmpeg projetc. 
+It uses libavcodec and libswscale libraries from the FFmpeg project. 
 
 2) Modify the following line in index.html to match your server ip: 
 
@@ -53,7 +53,7 @@ It uses libavcodec library from the FFmpeg projetc.
 
     $ node app.js
 
-4) Open your browser in http://192.168.1.181:8080 (replace with your correct server ip/host).
+4) Open your browser in http://192.168.1.181:8080 (replace with your correct server ip/host and port).
 
 Contact
 -------
