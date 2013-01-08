@@ -29,6 +29,7 @@ struct buffer {
 
 static char   *dev_name;
 static char   *camera;
+static int    channel;
 
 static int     fps = 3;   // ToDo: parameterize this!
 static int     fd = -1;   // device - file descriptor
@@ -206,8 +207,6 @@ static void init_device(void)
   // Select the video input
   // http://linuxtv.org/downloads/v4l-dvb-apis/video.html
   //
-  int channel = 0;      // ToDo: parameterize this!
-
   if (-1 == xioctl (fd, VIDIOC_S_INPUT, &channel)) {
     perror ("VIDIOC_S_INPUT");
     exit (EXIT_FAILURE);
@@ -350,17 +349,19 @@ static void usage(FILE *fp, int argc, char **argv)
       "Options:\n"
       "-c | --camera        Camera [%s]\n"
       "-d | --device        Device [%s]\n"
+      "-i | --input         Input channel [%d]\n"
       "-h | --help          Print this message\n"
       "",
-      argv[0], camera, dev_name);
+      argv[0], camera, dev_name, channel);
 }
 
-static const char short_options[] = "c:d:h";
+static const char short_options[] = "c:d:i:h";
 
 static const struct option
 long_options[] = {
         { "camera", required_argument, NULL, 'c' },
         { "device", required_argument, NULL, 'd' },
+        { "input",  required_argument, NULL, 'i' },
         { "help",   no_argument,       NULL, 'h' },
         { 0, 0, 0, 0 }
 };
@@ -389,6 +390,10 @@ int main(int argc, char *argv[])
 
     case 'd':
       dev_name = optarg;
+      break;
+
+    case 'i':
+      channel = atoi(optarg);
       break;
 
     case 'h':

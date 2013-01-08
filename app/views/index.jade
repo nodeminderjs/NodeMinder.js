@@ -1,4 +1,31 @@
 extends layout
 
 block content
-  img(src='/images/banner.jpg', width=640, height=240)
+  table#cameras
+    thead
+      tr.head
+        th Camera
+        th Description
+        th Type
+        th Device
+        th Channel
+        th Format
+        th Palette
+        th Width
+        th Height
+        th Fps
+    tbody
+      - var i = -1
+      each val, key in cameras
+        - ++i
+        tr(class=(i % 2 == 0) ? 'odd' : 'even')
+          td #{key}
+          td #{val.descr}
+          td #{val.type}
+          td #{val.device}
+          td #{val.channel}
+          td #{val.format}
+          td #{val.palette}
+          td #{val.width}
+          td #{val.height}
+          td #{val.fps}

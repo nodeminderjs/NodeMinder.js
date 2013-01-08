@@ -1,9 +1,10 @@
 /*
  * GET home page.
  */
+config = require('../config');
 
 exports.index = function(req, res){
-  res.render('index', { title: 'NodeMinder.js' });
+  res.render('index', { title: 'NodeMinder.js', cameras: config.getCamerasCfg() });
 };
 
 exports.grid = function(req, res){

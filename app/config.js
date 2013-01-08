@@ -17,6 +17,11 @@ function getCamCfg(id) {
   return cfg.cameras[id];
 }
 
+function getCamerasCfg() {
+  return cfg.cameras;
+}
+
 exports.loadConfig = loadConfig;
 exports.saveConfig = saveConfig;
 exports.getCamCfg = getCamCfg;
+exports.getCamerasCfg = getCamerasCfg;

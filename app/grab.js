@@ -19,11 +19,13 @@ function grabFrame(io, socket, camera) {
 
   var camCfg = config.getCamCfg(camera);
   var device = camCfg.device;
+  var input  = camCfg.channel;
     
   var grab = spawn('grabc/grabc',
                    [
                      '-c', camera,
-                     '-d', device
+                     '-d', device,
+                     '-i', input
                    ]);
   
   camSpawn[camera] = grab;
@@ -37,7 +39,7 @@ function grabFrame(io, socket, camera) {
     if (io.sockets.clients(camera).length == 0) {
       grab.kill();
       camSpawn[camera] = null;
-      console.log('killed: ' + camera);
+      console.log('kill: ' + camera);
       return;      
     }
     
