@@ -1,0 +1,14 @@
+{
+  "name": "NodeMinder.js",
+  "version": "0.0.3",
+  "private": true,
+  "scripts": {
+    "start": "node app"
+  },
+  "dependencies": {
+    "socket.io": "0.9.13",
+    "express": "3.0.6",
+    "jade": "*",
+    "stylus": "*"
+  }
+}
