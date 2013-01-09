@@ -1,5 +1,6 @@
-var socket = io.connect('http://192.168.1.181:8080/');
-  
+//var socket = io.connect('http://192.168.1.181:8080/');
+var socket = io.connect(window.location.protocol + '//' + window.location.host);
+
 socket.emit('subscribe', { camera: '01' });
 socket.emit('subscribe', { camera: '02' });
 

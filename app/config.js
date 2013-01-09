@@ -21,7 +21,12 @@ function getCamerasCfg() {
   return cfg.cameras;
 }
 
+function getServerCfg() {
+  return cfg.server;
+}
+
 exports.loadConfig = loadConfig;
 exports.saveConfig = saveConfig;
 exports.getCamCfg = getCamCfg;
 exports.getCamerasCfg = getCamerasCfg;
+exports.getServerCfg = getServerCfg;

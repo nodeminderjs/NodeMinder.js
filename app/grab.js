@@ -18,14 +18,17 @@ function grabFrame(io, socket, camera) {
   }
 
   var camCfg = config.getCamCfg(camera);
-  var device = camCfg.device;
-  var input  = camCfg.channel;
     
   var grab = spawn('grabc/grabc',
                    [
                      '-c', camera,
-                     '-d', device,
-                     '-i', input
+                     '-d', camCfg.device,
+                     '-i', camCfg.channel,
+                     '-f', camCfg.format,
+                     '-p', camCfg.palette,
+                     '-w', camCfg.width,
+                     '-e', camCfg.height,
+                     '-s', camCfg.fps
                    ]);
   
   camSpawn[camera] = grab;

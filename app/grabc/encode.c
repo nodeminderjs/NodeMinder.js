@@ -4,7 +4,6 @@
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 
-#define RAW_PIX_FMT  AV_PIX_FMT_BGR24
 #define YUV_PIX_FMT  AV_PIX_FMT_YUVJ420P
 #define JPG_PIX_FMT  AV_PIX_FMT_YUVJ420P
 
@@ -42,7 +41,9 @@ int in_width   = 320,
     out_width  = 320,
     out_height = 240;
 
-void init_encode(uint8_t *imgbuffer)
+uint32_t raw_pix_fmt = AV_PIX_FMT_BGR24;
+
+void init_encode(uint8_t *imgbuffer, char *palette)
 {
   /* register all the codecs */
   //avcodec_register_all();
@@ -51,6 +52,23 @@ void init_encode(uint8_t *imgbuffer)
 
   //set the buffer with the captured frame
   inbuffer = imgbuffer;
+
+  //set pixel format
+  if (palette == "BGR32") {
+    raw_pix_fmt = AV_PIX_FMT_BGR32;
+  } else if (palette == "RGB24") {
+    raw_pix_fmt = AV_PIX_FMT_RGB24 ;
+  } else if (palette == "RGB32") {
+    raw_pix_fmt = AV_PIX_FMT_RGB32;
+  } else if (palette == "YUYV") {
+    raw_pix_fmt = AV_PIX_FMT_YUYV422;
+  } else if (palette == "YUV420") {
+    raw_pix_fmt = AV_PIX_FMT_YUV420P;
+  } else if (palette == "GREY") {
+    raw_pix_fmt = AV_PIX_FMT_GRAY8;
+  } else {
+    raw_pix_fmt = AV_PIX_FMT_BGR24;  // default!
+  }
 
   //calculate the bytes needed for the output image
   int nbytes = avpicture_get_size(YUV_PIX_FMT, out_width, out_height);
@@ -65,11 +83,11 @@ void init_encode(uint8_t *imgbuffer)
 
   //this will set the pointers in the frame structures to the right points in
   //the input and output buffers.
-  avpicture_fill((AVPicture*)inpic,  inbuffer,  RAW_PIX_FMT, in_width,  in_height);
+  avpicture_fill((AVPicture*)inpic,  inbuffer,  raw_pix_fmt, in_width,  in_height);
   avpicture_fill((AVPicture*)outpic, outbuffer, YUV_PIX_FMT, out_width, out_height);
 
   //create the conversion context
-  sws_ctx = sws_getContext(in_width,  in_height,  RAW_PIX_FMT,
+  sws_ctx = sws_getContext(in_width,  in_height,  raw_pix_fmt,
                               out_width, out_height, YUV_PIX_FMT,
                               SWS_FAST_BILINEAR, NULL, NULL, NULL);
 

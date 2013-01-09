@@ -3,57 +3,76 @@ NodeMinder.js
 
 Linux video camera security and surveillance solution based on ZoneMinder and developed on top of a node.js stack.
 
-Release Notes
+Release 0.0.3
 -------------
 
-This third release is still a concept proof to test some design and tools options.
+In this third release, the project is becoming more functional and stable.
 
-Some configuration, although still very incomplete, and many things are hard coded.
+We already have a configuration file with server and cameras configuration options. See the [wiki configuration page](https://github.com/nodeminderjs/NodeMinder.js/wiki/Configuration).
 
 I'm developing this on an Ubuntu 12.04 64 bits server with a Geovision GV-800 card with two attached cheap generic mini-cameras. The cameras options are the following:
 
-    Camera 01
-    device: /dev/video0
-    video format: NTSC
-    video resolution: 320x240
-    frame rate: 3 fps
+```
+Camera 01
+device: /dev/video0
+video format: NTSC
+video resolution: 320x240
+frame rate: 3 fps
 
-    Camera 02
-    device: /dev/video1
-    video format: NTSC
-    video resolution: 320x240
-    frame rate: 3 fps
-
-Nothing is optimized and I'm not a Javascript, Node.js or C/C++ experienced programmer. Neither I have much knowledge about V4L programming. So, how I have initially said, this is only a initial concept proof to try to learn the basic concepts behind a complex software like ZoneMinder and try to do something less complex, using other concepts and technologies.
+Camera 02
+device: /dev/video1
+video format: NTSC
+video resolution: 320x240
+frame rate: 3 fps
+```
 
 Setup
 -----
 
-1) Compile the c++ source code:
+### 1) Compile the c source code
 
-    $ cd grabc  
-    $ make  
-    $ cd ..
+It uses avcodec and swscale libraries from the FFmpeg project. 
+
+```
+$ cd app/grabc/  
+$ make  
+$ cd ..
+```
     
-It uses libavcodec and libswscale libraries from the FFmpeg project. 
+### 2) Install dependencies with npm
 
-2) Modify the following line in public/javascripts/grid.js to match your server host/ip and port: 
+It uses socket.io and express, so install them with npm.
 
-    var socket = io.connect('http://192.168.1.181:8080/');
+```
+$ cd app/ 
+$ npm install  
+```
 
-3) Run the app:
+### 3) Configuration
 
-    $ sudo node app
+See the [wiki configuration page](https://github.com/nodeminderjs/NodeMinder.js/wiki/Configuration).
 
-  or add your user to video group with
+### 4) Run the app
 
-    $ sudo adduser <your_user> video
+```
+$ sudo node app
+```
 
-  and run the app without sudo:
+or add your user to video group with
 
-    $ node app
+```
+$ sudo adduser <your_user> video
+```
 
-4) Open your browser in http://192.168.1.181:8080 (replace with your correct server ip/host and port).
+and run the app without sudo
+
+```
+$ node app
+```
+
+### 5) Run the app
+
+Open your browser in http://192.168.1.181:8080 (replace with your correct server ip/host and port).
 
 Contact
 -------

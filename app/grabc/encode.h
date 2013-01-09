@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 void encode2jpeg(const char *filename);
-void init_encode(uint8_t *imgbuffer);
+void init_encode(uint8_t *imgbuffer, char *palette);
 void uninit_encode(void);
 
 #endif /* NODEMINDERJS_ENCODE_H */

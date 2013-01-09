@@ -15,9 +15,10 @@ var server = http.createServer(app),
     io = require('socket.io').listen(server, { log: false });
 
 config.loadConfig();
+var port = config.getServerCfg().port;
 
 app.configure(function(){
-  app.set('port', process.env.PORT || 8080);
+  app.set('port', process.env.PORT || port);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());

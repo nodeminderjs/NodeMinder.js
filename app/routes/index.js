@@ -1,7 +1,8 @@
 /*
  * GET home page.
  */
-config = require('../config');
+var config = require('../config');
+var app    = require('../app');
 
 exports.index = function(req, res){
   res.render('index', { title: 'NodeMinder.js', cameras: config.getCamerasCfg() });

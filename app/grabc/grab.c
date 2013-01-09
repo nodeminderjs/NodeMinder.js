@@ -30,8 +30,14 @@ struct buffer {
 static char   *dev_name;
 static char   *camera;
 static int    channel;
+static char   *format;
+static v4l2_std_id std_id;
+static char   *palette;
+static uint32_t pixelformat;
+static int    width;
+static int    height;
+static int    fps;
 
-static int     fps = 3;   // ToDo: parameterize this!
 static int     fd = -1;   // device - file descriptor
 struct buffer *buffers;
 //static int     frame_count = 1;
@@ -181,10 +187,9 @@ static void init_device(void)
 
   CLEAR(fmt);
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  fmt.fmt.pix.width       = 320;          // ToDo: parameterize this!
-  fmt.fmt.pix.height      = 240;          // ToDo: parameterize this!
-  //fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-  fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;  // ToDo: parameterize this!
+  fmt.fmt.pix.width       = width;
+  fmt.fmt.pix.height      = height;
+  fmt.fmt.pix.pixelformat = pixelformat;
   //fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 
   if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
@@ -216,29 +221,25 @@ static void init_device(void)
   // Selec a new video standard
   //
   struct v4l2_input input;
-  v4l2_std_id std_id;
 
   memset (&input, 0, sizeof(input));
 
   // ToDo: input.index is already set above in the channel var
-  if (-1 == xioctl (fd, VIDIOC_G_INPUT, &input.index)) {
-    perror ("VIDIOC_G_INPUT");
-    exit (EXIT_FAILURE);
-  }
+  //if (-1 == xioctl (fd, VIDIOC_G_INPUT, &input.index)) {
+  //  perror ("VIDIOC_G_INPUT");
+  //  exit (EXIT_FAILURE);
+  //}
+  input.index = channel;
 
   if (-1 == xioctl (fd, VIDIOC_ENUMINPUT, &input)) {
     perror ("VIDIOC_ENUM_INPUT");
     exit (EXIT_FAILURE);
   }
 
-  if (0 == (input.std & V4L2_STD_NTSC)) {
-    fprintf (stderr, "NTSC is not supported.\n");
+  if (0 == (input.std & std_id)) {
+    fprintf (stderr, "Format is not supported.\n");
     exit (EXIT_FAILURE);
   }
-
-  // Note this is also supposed to work when only B or G/PAL is supported.
-
-  std_id = V4L2_STD_NTSC;     // ToDo: parameterize this!
 
   if (-1 == ioctl (fd, VIDIOC_S_STD, &std_id)) {
     perror ("VIDIOC_S_STD");
@@ -350,27 +351,34 @@ static void usage(FILE *fp, int argc, char **argv)
       "-c | --camera        Camera [%s]\n"
       "-d | --device        Device [%s]\n"
       "-i | --input         Input channel [%d]\n"
+      "-f | --format        Format [%s]\n"
+      "-p | --palette       Palette [%s]\n"
+      "-w | --width         Width [%d]\n"
+      "-e | --height        Height [%d]\n"
+      "-s | --fps           FPS [%d]\n"
       "-h | --help          Print this message\n"
       "",
-      argv[0], camera, dev_name, channel);
+      argv[0], camera, dev_name, channel, format, palette, width, height, fps);
 }
 
-static const char short_options[] = "c:d:i:h";
+static const char short_options[] = "c:d:i:f:p:w:e:s:h";
 
 static const struct option
 long_options[] = {
-        { "camera", required_argument, NULL, 'c' },
-        { "device", required_argument, NULL, 'd' },
-        { "input",  required_argument, NULL, 'i' },
-        { "help",   no_argument,       NULL, 'h' },
+        { "camera",  required_argument, NULL, 'c' },
+        { "device",  required_argument, NULL, 'd' },
+        { "input",   required_argument, NULL, 'i' },
+        { "format",  required_argument, NULL, 'f' },
+        { "palette", required_argument, NULL, 'p' },
+        { "width",   required_argument, NULL, 'w' },
+        { "height",  required_argument, NULL, 'e' },
+        { "fps",     required_argument, NULL, 's' },
+        { "help",    no_argument,       NULL, 'h' },
         { 0, 0, 0, 0 }
 };
 
 int main(int argc, char *argv[])
 {
-  //camera = "01";
-  //dev_name = "/dev/video0";
-
   for (;;) {
     int idx;
     int c;
@@ -396,6 +404,46 @@ int main(int argc, char *argv[])
       channel = atoi(optarg);
       break;
 
+    case 'f':
+      format = optarg;
+      if (strcmp(format,"PAL_M") == 0) {
+        std_id = V4L2_STD_PAL_M;
+      } else {
+        std_id = V4L2_STD_NTSC;  // default!
+      }
+      break;
+
+    case 'p':
+      palette = optarg;
+      if (strcmp(palette,"BGR32") == 0) {
+        pixelformat = V4L2_PIX_FMT_BGR32;
+      } else if (strcmp(palette,"RGB24") == 0) {
+        pixelformat = V4L2_PIX_FMT_RGB24;
+      } else if (strcmp(palette,"RGB32") == 0) {
+        pixelformat = V4L2_PIX_FMT_RGB32;
+      } else if (strcmp(palette,"YUYV") == 0) {
+        pixelformat = V4L2_PIX_FMT_YUYV;
+      } else if (strcmp(palette,"YUV420") == 0) {
+        pixelformat = V4L2_PIX_FMT_YUV420;
+      } else if (strcmp(palette,"GREY") == 0) {
+        pixelformat = V4L2_PIX_FMT_GREY;
+      } else {
+        pixelformat = V4L2_PIX_FMT_BGR24;  // default!
+      }
+      break;
+
+    case 'w':
+      width = atoi(optarg);
+      break;
+
+    case 'e':
+      height = atoi(optarg);
+      break;
+
+    case 's':
+      fps = atoi(optarg);
+      break;
+
     case 'h':
       usage(stdout, argc, argv);
       exit(EXIT_SUCCESS);
@@ -408,7 +456,7 @@ int main(int argc, char *argv[])
 
   open_device();
   init_device();
-  init_encode(buffers[0].start);
+  init_encode(buffers[0].start, palette);
 
   //start_capturing();
   mainloop();
