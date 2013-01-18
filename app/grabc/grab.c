@@ -212,14 +212,16 @@ static void mainloop(void)
 {
   //unsigned int count = frame_count;
   struct timeval t1, t2, tv;
-  int r;
+  int r, f = 1000/fps;
+  long t;
 
   while (1) {
-    acquire_file_lock(fd, 10);
-    init_device();
-
     // get start time
     gettimeofday(&t1, NULL);
+
+    acquire_file_lock(fd, 5);
+
+    init_device();
 
     for (;;) {
       fd_set fds;
@@ -241,7 +243,7 @@ static void mainloop(void)
       }
 
       if (0 == r) {
-        fprintf(stderr, "select timeout\n");
+        fprintf(stderr, "mainloop: select timeout\n");
         exit(EXIT_FAILURE);
       }
 
@@ -256,9 +258,13 @@ static void mainloop(void)
     // get end time
     gettimeofday(&t2, NULL);
 
-    //fprintf(stderr, "get_elapsed_ms: %d ms\n", get_elapsed_ms(t1, t2));
+    //fprintf(stderr, "camera: %s, read: %d ms\n", camera, get_elapsed_ms(t1, t2));
     //fflush(stderr);
-    xsleep(0, 1000/fps - get_elapsed_ms(t1, t2));
+    t = get_elapsed_ms(t1, t2);
+    if (t < f)
+      xsleep(0, f - t);
+    else
+      xsleep(0, f);
   } // while (1)
 }
 
