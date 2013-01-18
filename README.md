@@ -3,6 +3,8 @@ NodeMinder.js
 
 Linux video camera security and surveillance solution based on ZoneMinder and developed on top of a node.js stack.
 
+See some [screenshots in our blog](http://nodeminderjs.blogspot.com/).
+
 Release 0.0.3
 -------------
 
@@ -70,7 +72,7 @@ and run the app without sudo
 $ node app
 ```
 
-### 5) Run the app
+### 5) Open in the browser
 
 Open your browser in http://192.168.1.181:8080 (replace with your correct server ip/host and port).
 
