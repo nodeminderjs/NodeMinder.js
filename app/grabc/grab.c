@@ -19,6 +19,7 @@
 #include <linux/videodev2.h>
 
 #include "encode.h"
+#include "change.h"
 #include "lib.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
@@ -27,6 +28,13 @@ struct buffer {
   void   *start;
   size_t  length;
 };
+
+static int buffer_gray = 1;
+static int buffer_gray_size = 320*240;  // 320 x 240 x 8bits per pixel
+static int img_size;
+static struct buffer *buffers;
+static int flag_first = 1;
+static long frame_count = 0;
 
 static char   *dev_name;
 static char   *camera;
@@ -39,9 +47,7 @@ static int    width;
 static int    height;
 static int    fps;
 
-static int     fd = -1;   // device - file descriptor
-struct buffer *buffers;
-static int     img_size;
+static int    fd = -1;   // device - file descriptor
 
 static void open_device(void)
 {
@@ -77,18 +83,28 @@ static void close_device(void)
 
 static void init_read()
 {
-  buffers = (struct buffer*) calloc(1, sizeof(*buffers));
+  int size;
+
+  buffers = (struct buffer*) calloc(3, sizeof(*buffers));
 
   if (!buffers) {
-    fprintf(stderr, "Out of memory\n");
+    fprintf(stderr, "Can't allocate buffers. Out of memory\n");
     exit(EXIT_FAILURE);
   }
 
   buffers[0].length = img_size;
   buffers[0].start = malloc(img_size);
 
-  if (!buffers[0].start) {
-    fprintf(stderr, "Out of memory\n");
+  buffers[1].length = buffer_gray_size;
+  buffers[1].start = malloc(buffer_gray_size);
+  buffers[2].length = buffer_gray_size;
+  buffers[2].start = malloc(buffer_gray_size);
+  //init_gray_buffer(&(buffers[1].start), &(buffers[2].start), 320, 240, &size);
+  //buffers[1].length = size;
+  //buffers[2].length = size;
+
+  if (!buffers[0].start || !buffers[1].start || !buffers[2].start) {
+    fprintf(stderr, "Can't allocate buffers [3]. Out of memory\n");
     exit(EXIT_FAILURE);
   }
 }
@@ -134,7 +150,8 @@ static void init_device(void)
   */
 
   img_size = fmt.fmt.pix.sizeimage;
-  if (!buffers) {
+  if (flag_first) {
+    flag_first = 0;
     init_read();
     init_encode(buffers[0].start, palette);
   }
@@ -175,16 +192,55 @@ static void init_device(void)
 
 static void process_image(const void *p, int size)
 {
+  uint8_t *outbuffer1, *outbuffer2;
+  int ret;
+
   char file[80];
   char cmd[80];
+
+  /*
+   * Save gray scale image
+   */
+  if (buffer_gray == 1) {
+    outbuffer1 = buffers[1].start;
+    outbuffer2 = buffers[2].start;
+    buffer_gray = 2;
+  } else {
+    outbuffer1 = buffers[2].start;
+    outbuffer2 = buffers[1].start;
+    buffer_gray = 1;
+  }
+  convert_scale(p, width, height, palette,
+                &outbuffer1, 320, 240);
+
+  /*
+   * Compare the two gray images to detect change
+   */
+  if (frame_count > 0) {
+    if (strcmp(camera,"05") == 0) {
+      ret = detect_change_gray(outbuffer1, outbuffer2, 320, 240, 7, 3);
+      fprintf(stderr, "05 - %d\n", ret);
+    }
+  }
+  frame_count++;
+
+  /*
+   * Encode the image to jpeg and save to file
+   */
   sprintf(file, "/dev/shm/cam%s.jpg", camera);
-  sprintf(cmd, "J%s", camera);
-
   encode2jpeg(file);
-  fprintf(stdout, cmd);
-  fflush(stdout);
 
-  fflush(stderr);
+  /*
+   * Send command to node
+   */
+  if (ret)
+    sprintf(cmd, "J%s C", camera);
+  else
+    sprintf(cmd, "J%s I", camera);
+  fprintf(stdout, cmd);
+
+  fflush(stdout);
+  //fflush(stderr);
 }
 
 static int read_frame(void)
@@ -216,10 +272,10 @@ static void mainloop(void)
   long t;
 
   while (1) {
+    acquire_file_lock(fd, 5);
+
     // get start time
     gettimeofday(&t1, NULL);
-
-    acquire_file_lock(fd, 5);
 
     init_device();
 

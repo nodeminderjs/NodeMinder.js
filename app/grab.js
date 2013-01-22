@@ -19,7 +19,7 @@ function grabFrame(io, socket, camera) {
 
   var camCfg = config.getCamCfg(camera);
     
-  var grab = spawn('grabc/grabc',
+  var grab = spawn('grabc/grab',
                    [
                      '-c', camera,
                      '-d', camCfg.device,
@@ -47,10 +47,11 @@ function grabFrame(io, socket, camera) {
     }
     
     // Commands:
-    // J01 - avaiable jpeg image of camera 1 in /dev/shm/cam01.jpg
-    var msg = data.toString('ascii').substr(0,3);
+    // "J01 C"  - avaiable jpeg image of camera 01, change detected
+    var msg = data.toString('ascii').substr(0,5);
     var cmd = msg[0];
     var cam = msg.substr(1,2);
+    var st  = msg[4];
   
     if (cmd == 'J') {
       fs.readFile('/dev/shm/cam'+cam+'.jpg', 'base64', function(err, data) {
@@ -58,6 +59,7 @@ function grabFrame(io, socket, camera) {
         //socket.emit('image'+cam, {
         io.sockets.in(camera).emit('image'+cam, {
            time: formatDateTime(),
+           status: st,
            jpg: 'data:image/gif;base64,' + data
         });
       });

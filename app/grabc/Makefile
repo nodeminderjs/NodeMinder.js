@@ -13,8 +13,8 @@ OBJS=$(addsuffix .o,$(EXAMPLES))
 # the following examples make explicit use of the math library
 encoding: LDLIBS += -lm
 
-grabc: grab.c encode.c encode.h lib.c lib.h
-	gcc -w grab.c encode.c lib.c -o grabc $(CFLAGS) $(LDLIBS)
+grabc: grab.c encode.c encode.h change.c change.h lib.c lib.h
+	gcc -w grab.c encode.c lib.c change.c -o grab $(CFLAGS) $(LDLIBS)
 
 
 

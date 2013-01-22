@@ -30,4 +30,9 @@ socket.on('image04', function(data) {
 socket.on('image05', function(data) {
   $('#cam05 img').attr('src', data.jpg);
   $('#cam05 div.info').text(data.time);
+  var st = data.status;
+  if (st == 'C')
+    $('#cam05 .info').addClass('change');
+  else
+    $('#cam05 .info').removeClass('change');
 });
