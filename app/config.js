@@ -7,6 +7,7 @@ var cfg;
 function loadConfig() {
   cfg = JSON.parse(fs.readFileSync('config/nodeminderjs.conf', 'utf8'));
   GLOBAL.cfg = cfg;
+  saveConfigToTmp();
 }
 
 function saveConfig() {
@@ -23,6 +24,31 @@ function getCamerasCfg() {
 
 function getServerCfg() {
   return cfg.server;
+}
+
+function saveConfigToTmp() {
+  /*
+   * Save config file in /tmp in the format:
+   * cam,descr,local,device,channel,format,palette,width,height,fps,pixel_limit,image_limit
+   * |01|descr|local|/dev/video0|0|NTSC|BGR24|320|240|3|6|2|
+   * ...
+   * |server|8080|
+   */
+  var c = cfg.cameras;
+  var s = '';
+
+  for (var k in c) {
+    var v = c[k];
+    s = s + '|' + k + '|' + v.descr + '|' + v.type + '|' + v.device + '|' + v.channel;
+    s = s + '|' + v.format + '|' + v.palette + '|' + v.width + '|' + v.height + '|' + v.fps;
+    s = s + '|' + v.recording.change_detect.pixel_limit;
+    s = s + '|' + v.recording.change_detect.image_limit;
+    s = s + '|\n';
+  }
+
+  s = s + '|server|' + cfg.server.port + '|';
+  
+  fs.writeFileSync('/tmp/nodeminderjs_grabc.conf', s);
 }
 
 exports.loadConfig = loadConfig;

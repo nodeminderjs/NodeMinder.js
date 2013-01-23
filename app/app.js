@@ -36,8 +36,10 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
+// routes
 app.get('/', routes.index);
 app.get('/grid', routes.grid);
+app.get('/view/:id', routes.view);
 
 io.sockets.on('connection', function (socket) {
   console.log('connection - socket:' + socket.id);
@@ -47,6 +49,10 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('subscribe', function(data) {
+    socket.emit('info', {
+      camera: data.camera,
+      cfg:    config.getCamCfg(data.camera)      
+    });
     grab.grabFrame(io, socket, data.camera);
   });
 });

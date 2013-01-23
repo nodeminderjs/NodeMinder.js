@@ -1,46 +1,53 @@
-doctype 5
-html
-  head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-    link(rel='stylesheet', href='/stylesheets/grid.css')
-    link(rel='stylesheet', href='/stylesheets/jquery-ui.css')
-    script(src='/javascripts/jquery.min.js')
-    script(src='/javascripts/jquery-ui.custom.min.js')
-    script(src='/socket.io/socket.io.js')
-    script(src='/javascripts/grid.js')
-    script
-      $(function() {
-        $(".draggable").draggable();
-        $(".resizable").resizable({
-          aspectRatio: 320 / 240
-        });        
-      });
-  body
-    #grid
-      .linha
-        #cam01.camera.draggable
-          .image
-            img#img01.resizable(src='#', width=320, height=240) 
-          .info
+extends base
 
-        #cam02.camera.draggable
-          .image
-            img#img02.resizable(src='#', width=320, height=240)
-          .info
+block stylesheets
+  link(rel='stylesheet', href='/stylesheets/jquery-ui.css')
 
-        #cam03.camera.draggable
-          .image
-            img#img03.resizable(src='#', width=320, height=240) 
-          .info
+block javascripts
+  script(src='/javascripts/jquery.min.js')
+  script(src='/javascripts/jquery-ui.custom.min.js')
+  script(src='/socket.io/socket.io.js')
+  script
+    var cameras = [
+      #{array}
+    ];
 
-        #cam04.camera.draggable
-          .image
-            img#img04.resizable(src='#', width=320, height=240) 
-          .info
+    $(function() {
+      $(".draggable").draggable();
+      $(".resizable").resizable({
+        aspectRatio: 320 / 240
+      });        
+    });
+ 
+    $(document).ready(function() {
+      var x = 0;
+      var y = 0;
+      //var w = $('body').width();
+      var w = $(window).width();
+      var tw = $('#cam01').width();
+      var th = $('#cam01').height() + 22;  // ToDo
+      
+      $(".camera").each(function(){
+        $(this).css({ position: "absolute",
+                      marginLeft: 0, marginTop: 0,
+                      top: y, left: x });
+        x = x + tw;
+        if ((x + tw) > w) {
+          x = 0;
+          y = y + th;
+        }
+      });      
+    });    
+  script(src='/javascripts/view.js')
 
-        #cam05.camera.draggable
-          .image
-            img#img05.resizable(src='#', width=320, height=240) 
-          .info
+block top
 
+block content
+  each val, key in cameras
+    div.camera.draggable(id='cam' + key)
+      .image
+        img.resizable(src='#', width=320, height=240) 
+      .info
+        .time
+        .cfg
+  

@@ -1,0 +1,19 @@
+extends base
+
+block javascripts
+  script(src='/javascripts/jquery.min.js')
+  script(src='/socket.io/socket.io.js')
+  script
+    var cameras = ['#{camera}'];
+  script(src='/javascripts/view.js')
+
+block top
+
+block content
+  div.camera(id='cam' + camera)
+    .image
+      img(src='#', width=320, height=240) 
+    .info
+      .time
+      .cfg
+

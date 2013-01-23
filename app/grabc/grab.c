@@ -29,15 +29,18 @@ struct buffer {
   size_t  length;
 };
 
-static int buffer_gray = 1;
-static int buffer_gray_size = 320*240;  // 320 x 240 x 8bits per pixel
-static int img_size;
+static int    buffer_gray = 1;
+static int    buffer_gray_size = 320*240;  // 320 x 240 x 8bits per pixel
+static int    img_size;
 static struct buffer *buffers;
-static int flag_first = 1;
-static long frame_count = 0;
+static int    flag_first = 1;
+static long   frame_count = 0;
 
-static char   *dev_name;
+// camera parameters
 static char   *camera;
+static char   *descr;
+static char   *local;
+static char   *dev_name;
 static int    channel;
 static char   *format;
 static v4l2_std_id std_id;
@@ -46,8 +49,101 @@ static uint32_t pixelformat;
 static int    width;
 static int    height;
 static int    fps;
+static int    pixel_limit;
+static int    image_limit;
 
 static int    fd = -1;   // device - file descriptor
+
+static int get_field(char str[200], int i, char fld[200])
+{
+  int j = 0;
+  while (str[i] == '|')
+    i++;
+  while (str[i] != '|') {
+    fld[j] = str[i];
+    i++;
+    j++;
+  }
+  fld[j] = 0;
+  return i;
+}
+
+void read_config_file(char *file)
+{
+  /*
+   * cam,descr,local,device,channel,format,palette,width,height,fps,pixel_limit,image_limit
+   * |01|descr|local|/dev/video0|0|NTSC|BGR24|320|240|3|6|2|
+   */
+  char str[200], fld[200];
+  int  i, ok = 0;
+  FILE *f;
+
+  f = fopen(file, "r");
+  if (!f) {
+    fprintf(stderr, "grab.c: Cannot read config file: %s\n", file);
+    exit(EXIT_FAILURE);
+  }
+
+  while( fgets(str, sizeof(str), f) != NULL) {
+    i = 0;
+    i = get_field(str, i, fld);
+    if (strcmp(fld, camera) == 0) {
+      // strip trailing '\n' if it exists
+      //int len = strlen(str)-1;
+      //if(str[len] == '\n')
+      //  str[len] = 0;
+      i = get_field(str, i, fld);
+      descr = malloc(strlen(fld));
+      strcpy(descr, fld);
+
+      i = get_field(str, i, fld);
+      local = malloc(strlen(fld));
+      strcpy(local, fld);
+
+      i = get_field(str, i, fld);
+      dev_name = malloc(strlen(fld));
+      strcpy(dev_name, fld);
+
+      i = get_field(str, i, fld);
+      channel = atoi(fld);
+
+      i = get_field(str, i, fld);
+      format = malloc(strlen(fld));
+      strcpy(format, fld);
+
+      i = get_field(str, i, fld);
+      palette = malloc(strlen(fld));
+      strcpy(palette, fld);
+
+      i = get_field(str, i, fld);
+      width = atoi(fld);
+
+      i = get_field(str, i, fld);
+      height = atoi(fld);
+
+      i = get_field(str, i, fld);
+      fps = atoi(fld);
+
+      i = get_field(str, i, fld);
+      pixel_limit = atoi(fld);
+
+      i = get_field(str, i, fld);
+      image_limit = atoi(fld);
+
+      ok = 1;
+      break;
+    }
+  }
+
+  fclose(f);
+
+  if (!ok) {
+    fprintf(stderr, "grab.c: Cannot find camera %s line in config file: %s\n", camera, file);
+    exit(EXIT_FAILURE);
+  }
+
+  return 0;
+}
 
 static void open_device(void)
 {
@@ -193,36 +289,36 @@ static void init_device(void)
 static void process_image(const void *p, int size)
 {
   uint8_t *outbuffer1, *outbuffer2;
-  int ret;
+  int ret = 0;
 
   char file[80];
   char cmd[80];
 
-  /*
-   * Save gray scale image
-   */
-  if (buffer_gray == 1) {
-    outbuffer1 = buffers[1].start;
-    outbuffer2 = buffers[2].start;
-    buffer_gray = 2;
-  } else {
-    outbuffer1 = buffers[2].start;
-    outbuffer2 = buffers[1].start;
-    buffer_gray = 1;
-  }
-  convert_scale(p, width, height, palette,
-                &outbuffer1, 320, 240);
-
-  /*
-   * Compare the two gray images to detect change
-   */
-  if (frame_count > 0) {
-    if (strcmp(camera,"05") == 0) {
-      ret = detect_change_gray(outbuffer1, outbuffer2, 320, 240, 7, 3);
-      fprintf(stderr, "05 - %d\n", ret);
+  if (pixel_limit > -1) {
+    /*
+     * Save gray scale image
+     */
+    if (buffer_gray == 1) {
+      outbuffer1 = buffers[1].start;
+      outbuffer2 = buffers[2].start;
+      buffer_gray = 2;
+    } else {
+      outbuffer1 = buffers[2].start;
+      outbuffer2 = buffers[1].start;
+      buffer_gray = 1;
     }
+    convert_scale(p, width, height, palette,
+                  &outbuffer1, 320, 240);
+
+    /*
+     * Compare two gray images to detect change
+     */
+    if (frame_count > 0) {
+      ret = detect_change_gray(outbuffer1, outbuffer2, 320, 240, pixel_limit, image_limit);
+      //fprintf(stderr, "05 - %d\n", ret);
+    }
+    frame_count++;
   }
-  frame_count++;
 
   /*
    * Encode the image to jpeg and save to file
@@ -231,7 +327,7 @@ static void process_image(const void *p, int size)
   encode2jpeg(file);
 
   /*
-   * Send command to node
+   * Send command and status to node
    */
   if (ret)
     sprintf(cmd, "J%s C", camera);
@@ -343,18 +439,19 @@ static void usage(FILE *fp, int argc, char **argv)
       argv[0], camera, dev_name, channel, format, palette, width, height, fps);
 }
 
-static const char short_options[] = "c:d:i:f:p:w:e:s:h";
+//static const char short_options[] = "c:d:i:f:p:w:e:s:h";
+static const char short_options[] = "c:h";
 
 static const struct option
 long_options[] = {
         { "camera",  required_argument, NULL, 'c' },
-        { "device",  required_argument, NULL, 'd' },
-        { "input",   required_argument, NULL, 'i' },
-        { "format",  required_argument, NULL, 'f' },
-        { "palette", required_argument, NULL, 'p' },
-        { "width",   required_argument, NULL, 'w' },
-        { "height",  required_argument, NULL, 'e' },
-        { "fps",     required_argument, NULL, 's' },
+//        { "device",  required_argument, NULL, 'd' },
+//        { "input",   required_argument, NULL, 'i' },
+//        { "format",  required_argument, NULL, 'f' },
+//        { "palette", required_argument, NULL, 'p' },
+//        { "width",   required_argument, NULL, 'w' },
+//        { "height",  required_argument, NULL, 'e' },
+//        { "fps",     required_argument, NULL, 's' },
         { "help",    no_argument,       NULL, 'h' },
         { 0, 0, 0, 0 }
 };
@@ -378,6 +475,7 @@ int main(int argc, char *argv[])
       camera = optarg;
       break;
 
+/*
     case 'd':
       dev_name = optarg;
       break;
@@ -425,6 +523,7 @@ int main(int argc, char *argv[])
     case 's':
       fps = atoi(optarg);
       break;
+*/
 
     case 'h':
       usage(stdout, argc, argv);
@@ -434,6 +533,30 @@ int main(int argc, char *argv[])
       usage(stderr, argc, argv);
       exit(EXIT_FAILURE);
     }
+  }
+
+  read_config_file("/tmp/nodeminderjs_grabc.conf");
+
+  if (strcmp(format,"PAL_M") == 0) {
+    std_id = V4L2_STD_PAL_M;
+  } else {
+    std_id = V4L2_STD_NTSC;  // default!
+  }
+
+  if (strcmp(palette,"BGR32") == 0) {
+    pixelformat = V4L2_PIX_FMT_BGR32;
+  } else if (strcmp(palette,"RGB24") == 0) {
+    pixelformat = V4L2_PIX_FMT_RGB24;
+  } else if (strcmp(palette,"RGB32") == 0) {
+    pixelformat = V4L2_PIX_FMT_RGB32;
+  } else if (strcmp(palette,"YUYV") == 0) {
+    pixelformat = V4L2_PIX_FMT_YUYV;
+  } else if (strcmp(palette,"YUV420") == 0) {
+    pixelformat = V4L2_PIX_FMT_YUV420;
+  } else if (strcmp(palette,"GREY") == 0) {
+    pixelformat = V4L2_PIX_FMT_GREY;
+  } else {
+    pixelformat = V4L2_PIX_FMT_BGR24;  // default!
   }
 
   open_device();

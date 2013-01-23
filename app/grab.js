@@ -21,14 +21,14 @@ function grabFrame(io, socket, camera) {
     
   var grab = spawn('grabc/grab',
                    [
-                     '-c', camera,
-                     '-d', camCfg.device,
-                     '-i', camCfg.channel,
-                     '-f', camCfg.format,
-                     '-p', camCfg.palette,
-                     '-w', camCfg.width,
-                     '-e', camCfg.height,
-                     '-s', camCfg.fps
+                     '-c', camera
+                     //'-d', camCfg.device,
+                     //'-i', camCfg.channel,
+                     //'-f', camCfg.format,
+                     //'-p', camCfg.palette,
+                     //'-w', camCfg.width,
+                     //'-e', camCfg.height,
+                     //'-s', camCfg.fps
                    ]);
   
   camSpawn[camera] = grab;
@@ -57,7 +57,8 @@ function grabFrame(io, socket, camera) {
       fs.readFile('/dev/shm/cam'+cam+'.jpg', 'base64', function(err, data) {
         if (err) throw err;
         //socket.emit('image'+cam, {
-        io.sockets.in(camera).emit('image'+cam, {
+        io.sockets.in(camera).emit('image', {
+           camera: cam,
            time: formatDateTime(),
            status: st,
            jpg: 'data:image/gif;base64,' + data
