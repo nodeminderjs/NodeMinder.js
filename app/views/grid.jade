@@ -1,6 +1,7 @@
 extends base
 
 block stylesheets
+  link(rel='stylesheet', href='/stylesheets/grid.css')
   link(rel='stylesheet', href='/stylesheets/jquery-ui.css')
 
 block javascripts
@@ -19,9 +20,9 @@ block top
 block content
   each val, key in cameras
     div.camera.draggable(id='cam' + key)
-      .image
-        img.resizable(src='#', width=320, height=240) 
-      .info
-        .time
-        .cfg
+      img.resizable(src='#', width="320", height="240") 
+      div.info
+        div.time
+        div.cfg
+  //input#testButton(type="button", value="test")
   

@@ -1,20 +1,29 @@
 $(function() {
   $(".draggable").draggable({
     stop: function( event, ui ) {
-      var custom = {};
-      custom[window.location.pathname] = {};
-      getCamerasCfg(custom[window.location.pathname]);
-      localStorage.grid_custom = JSON.stringify(custom);
+      saveCamerasCfg();
     }
   });
   $(".resizable").resizable({
-    aspectRatio: 320 / 240
+    aspectRatio: 320 / 240,
+    stop: function( event, ui ) {
+      saveCamerasCfg();
+    }
   });        
 });
  
 $(document).ready(function() {
+  $("#testButton").click(function() {
+    //alert("sas");
+    //$('#cam05').width(640).height(480);
+    $('#cam05 .ui-wrapper').width(640).height(480);
+    $('#cam05 img').width(640).height(480);
+  });
+
   var customCfg = false;
 
+  //$('.camera img').css({ width:'100%', height:'100%' });
+  
   if (localStorage.grid_custom) {
     var custom = JSON.parse(localStorage.grid_custom);
     if (custom[window.location.pathname])
@@ -26,13 +35,12 @@ $(document).ready(function() {
   else {
     var x = 0;
     var y = 0;
-    //var w = $('body').width();
     var w = $(window).width();
-    var tw = $('#cam01').width();
-    var th = $('#cam01').height() + 22;  // ToDo
+    var tw = 320;
+    var th = 240 + 27;  // ToDo
     
-    $(".camera").each(function(){
-      $(this).css({ position: "absolute",
+    $('.camera').each(function(){
+      $(this).css({ position: 'absolute',
                     marginLeft: 0, marginTop: 0,
                     top: y, left: x });
       x = x + tw;
@@ -45,21 +53,37 @@ $(document).ready(function() {
 });
 
 function getCamerasCfg(custom) {
-  //custom['01'] = 'hahaha';
-  $(".camera").each(function(){
+  $('.camera').each(function(){
     var id = $(this).attr('id');
     custom[id] = {};
     var camCfg = custom[id];
     var p = $(this).position();
     camCfg['top'] = p.top;
     camCfg['left'] = p.left;
+    camCfg['width'] = $('#' + id + ' .ui-wrapper').width();
+    camCfg['height'] = $('#' + id + ' .ui-wrapper').height();
   });
 }
 
 function setCamerasCfg(custom) {
+  var sel, camCfg;
   for (c in custom) {
-    $('#' + c).css({ position: "absolute",
-                     marginLeft: 0, marginTop: 0,
-                     top: custom[c].top, left: custom[c].left});    
+    camCfg = custom[c];
+    sel = 'div#' + c;
+    $(sel).css({ position: 'absolute',
+                 marginLeft: 0, marginTop: 0,
+                 top: camCfg.top, left: camCfg.left
+               });
+    $('#' + c + ' .ui-wrapper').width(camCfg.width);
+    $('#' + c + ' .ui-wrapper').height(camCfg.height);
+    $('#' + c + ' img').width(camCfg.width);
+    $('#' + c + ' img').height(camCfg.height);
   }
+}
+
+function saveCamerasCfg() {
+  var custom = {};
+  custom[window.location.pathname] = {};
+  getCamerasCfg(custom[window.location.pathname]);
+  localStorage.grid_custom = JSON.stringify(custom);
 }
