@@ -38,7 +38,7 @@ app.configure('development', function(){
 
 // routes
 app.get('/', routes.index);
-app.get('/grid', routes.grid);
+app.get('/grid/:custom?', routes.grid);
 app.get('/view/:id', routes.view);
 
 io.sockets.on('connection', function (socket) {

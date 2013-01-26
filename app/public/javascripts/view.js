@@ -7,7 +7,7 @@ for (var i=0; i<cameras.length; i++) {
 socket.on('info', function(data) {
   var cam = data.camera;
   var id = '#cam' + cam;
-  $(id + ' .cfg').text(' | ' + data.cfg.descr + ' | ' + cam + ' | ' + data.cfg.fps + ' fps');
+  $(id + ' .cfg').text(data.cfg.descr + ' | ' + cam + ' | ' + data.cfg.fps + ' fps');
 });
 
 socket.on('image', function(data) {

@@ -11,33 +11,7 @@ block javascripts
     var cameras = [
       #{array}
     ];
-
-    $(function() {
-      $(".draggable").draggable();
-      $(".resizable").resizable({
-        aspectRatio: 320 / 240
-      });        
-    });
- 
-    $(document).ready(function() {
-      var x = 0;
-      var y = 0;
-      //var w = $('body').width();
-      var w = $(window).width();
-      var tw = $('#cam01').width();
-      var th = $('#cam01').height() + 22;  // ToDo
-      
-      $(".camera").each(function(){
-        $(this).css({ position: "absolute",
-                      marginLeft: 0, marginTop: 0,
-                      top: y, left: x });
-        x = x + tw;
-        if ((x + tw) > w) {
-          x = 0;
-          y = y + th;
-        }
-      });      
-    });    
+  script(src='/javascripts/grid.js')
   script(src='/javascripts/view.js')
 
 block top
