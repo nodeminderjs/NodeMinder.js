@@ -1,5 +1,8 @@
 extends base
 
+block stylesheets
+  link(rel='stylesheet', href='/stylesheets/view.css')
+
 block javascripts
   script(src='/javascripts/jquery.min.js')
   script(src='/socket.io/socket.io.js')
@@ -11,9 +14,9 @@ block top
 
 block content
   div.camera(id='cam' + camera)
-    .image
-      img(src='#', width=320, height=240) 
-    .info
-      .time
-      .cfg
+    img(src='#', width="320", height="240") 
+    div.info
+      div.time
+      div.cfg
+
 
