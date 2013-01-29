@@ -125,6 +125,9 @@ void read_config_file(char *file)
       fps = atoi(fld);
 
       i = get_field(str, i, fld);
+      //rec_on = atoi(fld);  // rec_on not used here!
+
+      i = get_field(str, i, fld);
       pixel_limit = atoi(fld);
 
       i = get_field(str, i, fld);
@@ -195,9 +198,6 @@ static void init_read()
   buffers[1].start = malloc(buffer_gray_size);
   buffers[2].length = buffer_gray_size;
   buffers[2].start = malloc(buffer_gray_size);
-  //init_gray_buffer(&(buffers[1].start), &(buffers[2].start), 320, 240, &size);
-  //buffers[1].length = size;
-  //buffers[2].length = size;
 
   if (!buffers[0].start || !buffers[1].start || !buffers[2].start) {
     fprintf(stderr, "Can't allocate buffers [3]. Out of memory\n");
@@ -474,56 +474,6 @@ int main(int argc, char *argv[])
     case 'c':
       camera = optarg;
       break;
-
-/*
-    case 'd':
-      dev_name = optarg;
-      break;
-
-    case 'i':
-      channel = atoi(optarg);
-      break;
-
-    case 'f':
-      format = optarg;
-      if (strcmp(format,"PAL_M") == 0) {
-        std_id = V4L2_STD_PAL_M;
-      } else {
-        std_id = V4L2_STD_NTSC;  // default!
-      }
-      break;
-
-    case 'p':
-      palette = optarg;
-      if (strcmp(palette,"BGR32") == 0) {
-        pixelformat = V4L2_PIX_FMT_BGR32;
-      } else if (strcmp(palette,"RGB24") == 0) {
-        pixelformat = V4L2_PIX_FMT_RGB24;
-      } else if (strcmp(palette,"RGB32") == 0) {
-        pixelformat = V4L2_PIX_FMT_RGB32;
-      } else if (strcmp(palette,"YUYV") == 0) {
-        pixelformat = V4L2_PIX_FMT_YUYV;
-      } else if (strcmp(palette,"YUV420") == 0) {
-        pixelformat = V4L2_PIX_FMT_YUV420;
-      } else if (strcmp(palette,"GREY") == 0) {
-        pixelformat = V4L2_PIX_FMT_GREY;
-      } else {
-        pixelformat = V4L2_PIX_FMT_BGR24;  // default!
-      }
-      break;
-
-    case 'w':
-      width = atoi(optarg);
-      break;
-
-    case 'e':
-      height = atoi(optarg);
-      break;
-
-    case 's':
-      fps = atoi(optarg);
-      break;
-*/
 
     case 'h':
       usage(stdout, argc, argv);

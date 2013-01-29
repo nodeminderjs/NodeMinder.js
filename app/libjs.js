@@ -20,7 +20,7 @@ function formatDateTime(dt, fmt) {
   if (fmt == null || fmt == 'hh:mm:ss' ) {
     return hh + ':' + nn + ':' + ss;
   }
-  
+
   var d  = dt.getDate().toString(),
       m  = (dt.getMonth() + 1).toString(),
       y  = dt.getFullYear().toString(),

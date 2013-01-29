@@ -15,6 +15,12 @@ var server = http.createServer(app),
     io = require('socket.io').listen(server, { log: false });
 
 config.loadConfig();
+var cameras = config.getCamerasCfg();
+for (c in cameras) {
+  // run process to grab and compare frames
+  grab.grabFrame(io, c);  // ToDo: verify if the process is running. If not, trigger it again!
+}
+
 var port = config.getServerCfg().port;
 
 app.configure(function(){
@@ -36,7 +42,9 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-// routes
+/*
+ * routes
+ */
 app.get('/', routes.index);
 app.get('/grid/:custom?', routes.grid);
 app.get('/view/:id', routes.view);
@@ -53,7 +61,8 @@ io.sockets.on('connection', function (socket) {
       camera: data.camera,
       cfg:    config.getCamCfg(data.camera)      
     });
-    grab.grabFrame(io, socket, data.camera);
+    socket.join(data.camera);
+    //grab.grabFrame(io, data.camera);
   });
 });
 
