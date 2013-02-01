@@ -48,9 +48,13 @@ app.configure('development', function(){
 app.get('/', routes.index);
 app.get('/grid/:custom?', routes.grid);
 app.get('/view/:id', routes.view);
+app.get('/events/:id', routes.events);
+app.get('/video/:id/:date/:hour', routes.video);
+app.get('/ajax/videos/:id/:date', routes.getVideosByDate);
 
 io.sockets.on('connection', function (socket) {
-  console.log('connection - socket:' + socket.id);
+  var address = socket.handshake.address;
+  console.log('connection - socket:' + socket.id + ", from " + address.address + ":" + address.port);
 
   socket.on('disconnect', function() {
     console.log('disconnect - socket:' + socket.id);

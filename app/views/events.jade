@@ -1,0 +1,59 @@
+extends base
+
+block stylesheets
+  meta(name='viewport', content='width=device-width')
+  link(rel='stylesheet', href='/stylesheets/jquery-ui.css')
+  link(rel='stylesheet', href='/stylesheets/style.css')
+  link(rel='stylesheet', href='/stylesheets/events.css')
+  link(rel='stylesheet', href='/stylesheets/events-m.css', media='only screen and (max-width: 700px)')
+
+block javascripts
+  script(src='/javascripts/jquery.min.js')
+  script(src='/javascripts/jquery-ui.custom.min.js')
+  script
+    var cameras = ['#{camera}'];
+  script(src='/javascripts/events.js')
+
+block content
+  h1 Events
+
+  table#cameras
+    thead
+      tr.head
+        th Camera
+        th Description
+        th Type
+        th Device
+        th Channel
+        th Format
+        th Palette
+        th Width
+        th Height
+        th Fps
+    tbody
+      tr.even
+        td #{camera}
+        td #{cfg.descr}
+        td #{cfg.type}
+        td #{cfg.device}
+        td #{cfg.channel}
+        td #{cfg.format}
+        td #{cfg.palette}
+        td #{cfg.width}
+        td #{cfg.height}
+        td #{cfg.fps}
+
+  div#videos
+    div#left
+      p.datepicker
+        label(for='datepicker') Date:&nbsp;
+        input(type='text', id='datepicker')
+      div#list
+        ul
+
+    div#video.
+      <video width="320" height="240" controls>
+        <source src="#" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>  
+    

@@ -104,9 +104,10 @@ function grabFrame(io, camera) {
                 // ffmpeg -r 2 -f image2 -i "%05d.jpg" out.mp4
                 var ffmpeg = spawn('ffmpeg',  // ToDo: configure ffmpeg location
                                     [
-                                      '-r', camCfg.fps,
-                                      '-f', 'image2',
-                                      '-i', eventDir + '/%05d.jpg',
+                                      '-r',       camCfg.fps,
+                                      '-f',       'image2',
+                                      '-i',       eventDir + '/%05d.jpg',
+                                      '-pix_fmt', 'yuv420p',
                                       eventDir + '.mp4'
                                     ]);
                 ffmpeg.on('exit', function (code, signal) {
@@ -124,7 +125,7 @@ function grabFrame(io, camera) {
             f = '00000' + recFrame;
             fname = eventDir + '/' + f.substr(f.length-5, 5) + '.jpg'; 
             fs.writeFile(fname, data, function (err) {
-              if (err) throw err;
+              //if (err) throw err;  // ToDo: log error instead of throw
             });
             recFrame++;
           }

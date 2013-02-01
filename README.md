@@ -9,24 +9,20 @@ Contact: nodeminderjs@gmail.com
 
 ## Contents
 
-* Release 0.0.4
+* Release 0.0.5
 * Setup
 * Configuration
 * Running the server
 * Open in your browser
 
 
-## Release 0.0.4
+## Release 0.0.5
 
 ### Release notes
 
-* Fixed the problem with multichannel cards.
-Reads from multiple cameras connected to the same chip (device - e.g. /dev/video0) are now synchronous.
-* Implemented a simple image change detection routine to trigger recording.
-* Improvements in the client (browser) to allow positioning and resizing of the cameras images,
-selection of cameras that will be shown on the view and saving these customizations using HTML5
-localStorage feature.
-* Events recording for each configured camera.
+* New page for viewing the recorded events.
+* Fixed bug with event mp4 video generated. Added "-pix_fmt yuv420p" output parameter
+to the ffmpeg command. Now the generated video plays in Google Chrome browse. 
 
 
 ## Setup
@@ -95,16 +91,71 @@ Example with two cameras configured:
             "height": 240,
             "fps": 3,
             "recording": {
+                "rec_on": 0,
+                "change_detect": {
+                    "pixel_limit": 6,
+                    "image_limit": 2
+                }
+            }
+        },
+        "03": {
+            "descr": "IT camera 3",
+            "type": "local",
+            "device": "/dev/video2",
+            "channel": 0,
+            "format": "NTSC",
+            "palette": "BGR24",
+            "width": 320,
+            "height": 240,
+            "fps": 3,
+            "recording": {
+                "rec_on": 0,
+                "change_detect": {
+                    "pixel_limit": 6,
+                    "image_limit": 2
+                }
+            }
+        },
+        "04": {
+            "descr": "front door",
+            "type": "local",
+            "device": "/dev/video3",
+            "channel": 0,
+            "format": "NTSC",
+            "palette": "BGR24",
+            "width": 320,
+            "height": 240,
+            "fps": 3,
+            "recording": {
                 "rec_on": 1,
                 "change_detect": {
                     "pixel_limit": 6,
                     "image_limit": 2
                 }
             }
+        },
+        "05": {
+            "descr": "my table",
+            "type": "local",
+            "device": "/dev/video0",
+            "channel": 1,
+            "format": "NTSC",
+            "palette": "BGR24",
+            "width": 320,
+            "height": 240,
+            "fps": 3,
+            "recording": {
+                "rec_on": 1,
+                "change_detect": {
+                    "pixel_limit": 7,
+                    "image_limit": 3
+                }
+            }
         }
     }
 }
 ```
+
 ### events >> dir
 
 Location of the mp4 videos generates for each event recording. The user wich is running
@@ -172,7 +223,7 @@ $ node app
 
 Open your browser in http://host:port (replace with your correct server ip/host and port).
 
-We recomend Google Chrome. In Firefox we verified some image blinking.
+We recomend Google Chrome browser. In Firefox we verified some image blinking.
 In Chrome the image changing is more smooth. 
 
 Example:
@@ -217,4 +268,12 @@ Ex.: http://192.168.1.181:8080/view/<camera>
 
 Show only one camera view.
 
-Ex.: http://192.168.1.181:8080/view/1  <== shows camera "01"
+Ex.: http://192.168.1.181:8080/view/1  <== show camera "01"
+
+### Events page
+
+Page for viewing the recorded events.
+
+http://host:port/events/<camera>
+
+Ex.: http://192.168.1.181:8080/events/4  <== show recorded events from camera "04"
