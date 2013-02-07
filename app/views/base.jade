@@ -13,5 +13,10 @@ html
           #header
             a(href='/')
               img(src='/images/nodeminderjs.png', width=205, height=80, alt='NodeMinder.js')
-    #content
-      block content
+      #content
+        block content
+      #alert
+        block alert
+          #alert-disconnect(title='Alert')
+            p Disconnected from the server!
+    

@@ -9,20 +9,24 @@ Contact: nodeminderjs@gmail.com
 
 ## Contents
 
-* Release 0.0.5
+* Release 0.0.6
 * Setup
 * Configuration
 * Running the server
 * Open in your browser
 
 
-## Release 0.0.5
+## Release 0.0.6
 
 ### Release notes
 
-* New page for viewing the recorded events.
-* Fixed bug with event mp4 video generated. Added "-pix_fmt yuv420p" output parameter
-to the ffmpeg command. Now the generated video plays in Google Chrome browse. 
+* Socket.io reconnect ok. Moved the for that emits subscribe events for the cameras
+into the connect event. After reconnect this event is fired again.
+* Alert box to show client disconnect.
+* Fixed a bug in using the '(new Date()).toISOString().substr(0,10)' expression to
+get the date folder name where the recordings are saved. The time returned did not
+consider the timezone.
+* Added -y option in ffmpeg command to overwrite output files without asking.  
 
 
 ## Setup
@@ -31,12 +35,19 @@ to the ffmpeg command. Now the generated video plays in Google Chrome browse.
 
 It uses avcodec and swscale libraries from the FFmpeg project. 
 
+I followed the excelent [Compile FFmpeg on Ubuntu]
+(https://ffmpeg.org/trac/ffmpeg/wiki/UbuntuCompilationGuide) tutorial to provide
+the latestFFmpeg code and enable several external encoding and decoding libraries,
+like libx264 (H.264 encoder) used to encode the mp4 event recording video file. 
+
+After getting ffmpeg, compile the c source code:
+
 ```
 $ cd app/grabc/  
 $ make  
 $ cd ..
 ```
-    
+
 ### 2) Install dependencies with npm
 
 It uses socket.io and express, so install them with npm.

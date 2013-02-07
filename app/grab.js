@@ -4,8 +4,7 @@ var spawn = require('child_process').spawn;
 var fs    = require('fs');
 
 var config = require('./config');
-
-var formatDateTime = require('./libjs').formatDateTime;
+var libjs  = require('./libjs');
 
 var camSpawn = {};
 
@@ -71,20 +70,21 @@ function grabFrame(io, camera) {
         if (err) throw err;
         io.sockets.in(camera).emit('image', {
            camera: cam,
-           time: formatDateTime(),
+           time: libjs.formatDateTime(),
            status: st,
            jpg: 'data:image/gif;base64,' + data.toString('base64')
         });
 
         /*
-         * Process recording
+         * Process event recording
          */
         if (rec) {
           if (st == 'C') {
             if (recording == 0) {
               // start recording
-              recStartDate = (new Date()).toISOString().substr(0,10);
-              recStartTime = formatDateTime();
+              d = new Date();
+              recStartDate = libjs.getLocalDate(d).toISOString().substr(0,10);
+              recStartTime = libjs.formatDateTime(d);
               recFrame = 0;
               if (!fs.existsSync(recDir + recStartDate))
                 fs.mkdirSync(recDir + recStartDate);
@@ -108,7 +108,8 @@ function grabFrame(io, camera) {
                                       '-f',       'image2',
                                       '-i',       eventDir + '/%05d.jpg',
                                       '-pix_fmt', 'yuv420p',
-                                      eventDir + '.mp4'
+                                      eventDir + '.mp4',
+                                      '-y'
                                     ]);
                 ffmpeg.on('exit', function (code, signal) {
                   spawn('rm',

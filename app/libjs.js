@@ -44,4 +44,12 @@ function formatDateTime(dt, fmt) {
   return fmt;
 }
 
+function getLocalDate(dt) {
+  if (dt == null) {
+    dt = new Date();
+  }
+  return new Date(dt - (dt.getTimezoneOffset() * 60000));
+}
+
 exports.formatDateTime = formatDateTime;
+exports.getLocalDate = getLocalDate;
