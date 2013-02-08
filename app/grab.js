@@ -8,6 +8,9 @@ var libjs  = require('./libjs');
 
 var camSpawn = {};
 
+var REC_AFTER_TIME = 3;         // number of seconds to record after idle
+var MAX_VIDEO_TIME = 60;        // max video time in seconds = 120s = 2min
+
 function grabFrame(io, camera) {
   var msg, cmd, cam, st, f, fname;
   
@@ -23,6 +26,7 @@ function grabFrame(io, camera) {
                    ]);
   
   camSpawn[camera] = grab;
+  grab.camera = camera;
   
   /*
    * Recording vars
@@ -33,7 +37,8 @@ function grabFrame(io, camera) {
   var recStartDate;  // recording starting date and time
   var recStartTime;
   
-  var framesAfter = 3 * camCfg.fps;  // number of frames to record after idle - 3s
+  var framesAfter = REC_AFTER_TIME * camCfg.fps;  // number of frames to record after idle
+  var maxRecFrames = MAX_VIDEO_TIME * camCfg.fps; // max frames number by video
   var recording = 0;    // when state = 'C' it is set to framesAfter, otherwise ('I') it is decremented
   var recFrame = 0;     // recorded frame number
   
@@ -45,18 +50,7 @@ function grabFrame(io, camera) {
   /*
    * grab
    */
-
   grab.stdout.on('data', function(data) {
-    // if no more clients subscribed to this camera, kill the camera process
-    /*
-    if (io.sockets.clients(camera).length == 0) {
-      grab.kill();
-      camSpawn[camera] = null;
-      console.log('kill: ' + camera);
-      return;      
-    }
-    */
-    
     // Commands:
     // "J01 C"  - avaiable jpeg image from camera 01, change detected
     // "J01 I"  - avaiable jpeg image from camera 02, idle - without change detected
@@ -79,7 +73,7 @@ function grabFrame(io, camera) {
          * Process event recording
          */
         if (rec) {
-          if (st == 'C') {
+          if (st == 'C' && recFrame < maxRecFrames) {
             if (recording == 0) {
               // start recording
               d = new Date();
@@ -111,12 +105,15 @@ function grabFrame(io, camera) {
                                       eventDir + '.mp4',
                                       '-y'
                                     ]);
-                ffmpeg.on('exit', function (code, signal) {
-                  spawn('rm',
-                         [
-                           eventDir, '-rf'
-                         ]);
+                // save eventDir because ffmpeg can delay and in this time have started another recording
+                ffmpeg.eventDir = eventDir;
+                ffmpeg.on('exit', function(code, signal) {
+                  var rm = spawn('rm',
+                                 [
+                                   ffmpeg.eventDir, '-rf'
+                                 ]);
                 });
+                recFrame = 0;
               }
             }
           }
@@ -139,6 +136,14 @@ function grabFrame(io, camera) {
 
   grab.stderr.on('data', function(data) {
     console.log('grab stderr: ' + data);
+  });
+  
+  grab.on('exit', function(code, signal) {
+    //console.log(camSpawn[grab.camera].pid);
+    setTimeout(function() {
+      camSpawn[grab.camera] = null;
+      grabFrame(io, grab.camera);
+    }, 5000);  // ToDo: parameterize this!
   });
 }
 

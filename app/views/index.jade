@@ -1,19 +1,16 @@
 extends layout
 
 block content
+  p
+    a(href='/grid', target='_blank') Show grid
   table#cameras
     thead
       tr.head
         th Camera
         th Description
-        th Type
-        th Device
-        th Channel
-        th Format
-        th Palette
-        th Width
-        th Height
         th Fps
+        th
+        th
     tbody
       - var i = -1
       each val, key in cameras
@@ -21,11 +18,8 @@ block content
         tr(class=(i % 2 == 0) ? 'odd' : 'even')
           td #{key}
           td #{val.descr}
-          td #{val.type}
-          td #{val.device}
-          td #{val.channel}
-          td #{val.format}
-          td #{val.palette}
-          td #{val.width}
-          td #{val.height}
           td #{val.fps}
+          td
+            a(href='/view/#{key}', target='_blank') View
+          td
+            a(href='/events/#{key}', target='_blank') Events

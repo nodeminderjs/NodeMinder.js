@@ -9,25 +9,20 @@ Contact: nodeminderjs@gmail.com
 
 ## Contents
 
-* Release 0.0.6
+* Release 0.0.7
 * Setup
 * Configuration
 * Running the server
 * Open in your browser
 
 
-## Release 0.0.6
+## Release 0.0.7
 
 ### Release notes
 
-* Socket.io reconnect ok. Moved the for that emits subscribe events for the cameras
-into the connect event. After reconnect this event is fired again.
-* Alert box to show client disconnect.
-* Fixed a bug in using the '(new Date()).toISOString().substr(0,10)' expression to
-get the date folder name where the recordings are saved. The time returned did not
-consider the timezone.
-* Added -y option in ffmpeg command to overwrite output files without asking.  
-
+* Implemented the grab exit event to try to rerun the process after a short delay.
+* Max video time limit in seconds.
+* Links to grid, views and events in the cameras list at the main page.
 
 ## Setup
 
