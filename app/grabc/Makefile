@@ -15,8 +15,3 @@ encoding: LDLIBS += -lm
 
 grab: grab.c encode.c encode.h change.c change.h lib.c lib.h
 	gcc -w grab.c encode.c lib.c change.c -o grab $(CFLAGS) $(LDLIBS)
-
-
-
-
-

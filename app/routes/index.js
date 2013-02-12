@@ -9,7 +9,9 @@ var app    = require('../app');
 var video  = require('./video');
 
 exports.index = function(req, res) {
-  res.render('index', { title: 'NodeMinder.js', cameras: config.getCamerasCfg() });
+  res.render('index', { title: 'NodeMinder.js', 
+                        cameras: config.getCamerasCfg(),
+                        sorted:  config.getCamerasSortedArray() });
 };
 
 exports.grid = function(req, res) {
@@ -22,9 +24,12 @@ exports.grid = function(req, res) {
 };
 
 exports.view = function(req, res) {
-  var camera = '0' + req.params.id;
-  camera = camera.substr(camera.length - 2, 2);
-  res.render('view', { title: 'NodeMinder.js View', camera: camera });
+  var cam = '0' + req.params.id;
+  cam = cam.substr(cam.length - 2, 2);
+  var camCfg = config.getCamCfg(cam);
+  var cameras = {};
+  cameras[cam] = camCfg;
+  res.render('grid', { title: 'NodeMinder.js View', cameras: cameras, array: "'"+cam+"'" });
 };
 
 exports.events = function(req, res) {

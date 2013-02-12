@@ -2,6 +2,8 @@
 
 Linux video camera security and surveillance solution based on ZoneMinder and developed on top of a node.js stack.
 
+The system still doesn't have support for webcams and IP cameras. We plan to implement these features in future releases.
+
 See some [screenshots in our blog](http://nodeminderjs.blogspot.com/).
 
 Contact: nodeminderjs@gmail.com
@@ -9,20 +11,21 @@ Contact: nodeminderjs@gmail.com
 
 ## Contents
 
-* Release 0.0.7
+* Release 0.0.8
 * Setup
 * Configuration
 * Running the server
 * Open in your browser
 
 
-## Release 0.0.7
+## Release 0.0.8
 
 ### Release notes
 
-* Implemented the grab exit event to try to rerun the process after a short delay.
-* Max video time limit in seconds.
-* Links to grid, views and events in the cameras list at the main page.
+* Unified view and grid views. A grid is a view with multiple cameras and a view has only one camera view.
+Same views, javascript files and stylesheets for both.
+* New getCamerasSortedArray() method in config to return a sorted cameras array.
+This is used to display the cameras list properly sorted.
 
 ## Setup
 
@@ -185,7 +188,11 @@ palette = BGR24 (default) | BGR32 | RGB24 | RGB32 | YUYV | YUV420 | GREY
 
 ### cameras >> NN >> recording >> rec_on
 
-Turn on (1) or off (0) the events recording for the camera.
+Turn on or off the camera events recording.
+
+* 0 - off
+* 1 - record on change detect
+* 2 - continuous recording
 
 ### cameras >> NN >> recording >> change_detect >> pixel_limit 
 
@@ -230,7 +237,19 @@ $ node app
 Open your browser in http://host:port (replace with your correct server ip/host and port).
 
 We recomend Google Chrome browser. In Firefox we verified some image blinking.
-In Chrome the image changing is more smooth. 
+In Chrome the image changing is more smooth.
+
+### Configuring Google Chrome
+
+To open Chrome in a separate instance and in full screen:
+
+Windows example:
+
+```
+"C:\...\chrome.exe" --user-dat-dir="C:\path\to\user\data\dir" --kiosk http://url.to.open
+```
+
+Replace "C:\path\to\user\data\dir" whith a unique dir path for each instance.
 
 Example:
 

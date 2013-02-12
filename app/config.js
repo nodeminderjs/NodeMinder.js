@@ -22,6 +22,13 @@ function getCamerasCfg() {
   return cfg.cameras;
 }
 
+function getCamerasSortedArray(){
+  a = []
+  for (c in cfg.cameras)
+    a.push(c);
+  return a.sort();
+}
+
 function getServerCfg() {
   return cfg.server;
 }
@@ -62,5 +69,6 @@ exports.loadConfig = loadConfig;
 exports.saveConfig = saveConfig;
 exports.getCamCfg = getCamCfg;
 exports.getCamerasCfg = getCamerasCfg;
+exports.getCamerasSortedArray = getCamerasSortedArray;
 exports.getServerCfg = getServerCfg;
 exports.getEventsCfg = getEventsCfg;

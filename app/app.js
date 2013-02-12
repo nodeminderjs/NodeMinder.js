@@ -47,7 +47,7 @@ app.configure('development', function(){
  */
 app.get('/', routes.index);
 app.get('/grid/:custom?', routes.grid);
-app.get('/view/:id', routes.view);
+app.get('/view/:id/:custom?', routes.view);
 app.get('/events/:id', routes.events);
 app.get('/video/:id/:date/:hour', routes.video);
 app.get('/ajax/videos/:id/:date', routes.getVideosByDate);

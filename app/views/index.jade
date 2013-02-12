@@ -1,4 +1,7 @@
-extends layout
+extends base
+
+block stylesheets
+  link(rel='stylesheet', href='/stylesheets/style.css')
 
 block content
   p
@@ -9,16 +12,19 @@ block content
         th Camera
         th Description
         th Fps
-        th
-        th
+        th(colspan=2)
+        //th
     tbody
       - var i = -1
-      each val, key in cameras
+      //each val, key in cameras
+      each key in sorted
         - ++i
         tr(class=(i % 2 == 0) ? 'odd' : 'even')
           td #{key}
-          td #{val.descr}
-          td #{val.fps}
+          //td #{val.descr}
+          td #{cameras[key].descr}
+          //td #{val.fps}
+          td #{cameras[key].fps}
           td
             a(href='/view/#{key}', target='_blank') View
           td

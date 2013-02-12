@@ -9,7 +9,7 @@ var libjs  = require('./libjs');
 var camSpawn = {};
 
 var REC_AFTER_TIME = 3;         // number of seconds to record after idle
-var MAX_VIDEO_TIME = 60;        // max video time in seconds = 120s = 2min
+var MAX_VIDEO_TIME = 120;       // max video time in seconds = 120s = 2min
 
 function grabFrame(io, camera) {
   var msg, cmd, cam, st, f, fname;
@@ -31,10 +31,10 @@ function grabFrame(io, camera) {
   /*
    * Recording vars
    */
-  var rec = camCfg.recording.rec_on;  // recording on/off
+  var rec = camCfg.recording.rec_on;  // recording on (1-detect,2-continuous) / off (0)
   var recDir = config.getEventsCfg().dir + camera + '/';  // this camera events dir
   var eventDir;
-  var recStartDate;  // recording starting date and time
+  var recStartDate;                   // recording starting date and time
   var recStartTime;
   
   var framesAfter = REC_AFTER_TIME * camCfg.fps;  // number of frames to record after idle
@@ -68,18 +68,20 @@ function grabFrame(io, camera) {
            status: st,
            jpg: 'data:image/gif;base64,' + data.toString('base64')
         });
-
-        /*
-         * Process event recording
-         */
+        
         if (rec) {
+          /*
+           * Process event recording
+           */
           if (st == 'C' && recFrame < maxRecFrames) {
             if (recording == 0) {
-              // start recording
+              /*
+               * Start recording
+               */ 
+              recFrame = 0;
               d = new Date();
               recStartDate = libjs.getLocalDate(d).toISOString().substr(0,10);
               recStartTime = libjs.formatDateTime(d);
-              recFrame = 0;
               if (!fs.existsSync(recDir + recStartDate))
                 fs.mkdirSync(recDir + recStartDate);
               eventDir = recDir + recStartDate + '/' +
@@ -94,8 +96,9 @@ function grabFrame(io, camera) {
             if (recording > 0) {
               recording--;
               if (recording == 0) {
-                // stop recording - create video
-                // ffmpeg -r 2 -f image2 -i "%05d.jpg" out.mp4
+                /*
+                 * Stop recording - create video
+                 */ 
                 var ffmpeg = spawn('ffmpeg',  // ToDo: configure ffmpeg location
                                     [
                                       '-r',       camCfg.fps,
