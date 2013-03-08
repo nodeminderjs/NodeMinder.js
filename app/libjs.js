@@ -51,5 +51,11 @@ function getLocalDate(dt) {
   return new Date(dt - (dt.getTimezoneOffset() * 60000));
 }
 
+function sleepSync(ms) {
+  var d = Date.now();
+  while (Date.now() < d+ms) {}
+}
+
 exports.formatDateTime = formatDateTime;
 exports.getLocalDate = getLocalDate;
+exports.sleepSync = sleepSync

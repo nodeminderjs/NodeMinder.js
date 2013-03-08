@@ -41,37 +41,40 @@ int in_width   = 320,
     out_width  = 320,
     out_height = 240;
 
+int nbytes;
+
 uint32_t raw_pix_fmt = AV_PIX_FMT_BGR24;
 
-void init_encode(uint8_t *imgbuffer, char *palette)
+void init_encode(char *palette, int i_width, int i_height, int o_width, int o_height)
 {
   /* register all the codecs */
   //avcodec_register_all();
   REGISTER_ENCODER(MJPEG, mjpeg);
   REGISTER_PARSER(MJPEG, mjpeg);
 
-  //set the buffer with the captured frame
-  inbuffer = imgbuffer;
+  in_width   = i_width;
+  in_height  = i_height;
+  out_width  = o_width;
+  out_height = o_height;
 
   //set pixel format
-  if (palette == "BGR32") {
+  if (palette == "BGR32")
     raw_pix_fmt = AV_PIX_FMT_BGR32;
-  } else if (palette == "RGB24") {
-    raw_pix_fmt = AV_PIX_FMT_RGB24 ;
-  } else if (palette == "RGB32") {
+  else if (palette == "RGB24")
+    raw_pix_fmt = AV_PIX_FMT_RGB24;
+  else if (palette == "RGB32")
     raw_pix_fmt = AV_PIX_FMT_RGB32;
-  } else if (palette == "YUYV") {
+  else if (palette == "YUYV")
     raw_pix_fmt = AV_PIX_FMT_YUYV422;
-  } else if (palette == "YUV420") {
+  else if (palette == "YUV420")
     raw_pix_fmt = AV_PIX_FMT_YUV420P;
-  } else if (palette == "GREY") {
+  else if (palette == "GREY")
     raw_pix_fmt = AV_PIX_FMT_GRAY8;
-  } else {
+  else
     raw_pix_fmt = AV_PIX_FMT_BGR24;  // default!
-  }
 
   //calculate the bytes needed for the output image
-  int nbytes = avpicture_get_size(YUV_PIX_FMT, out_width, out_height);
+  nbytes = avpicture_get_size(YUV_PIX_FMT, out_width, out_height);
 
   //create buffer for the output image
   outbuffer = (uint8_t*)av_malloc(nbytes);
@@ -83,15 +86,14 @@ void init_encode(uint8_t *imgbuffer, char *palette)
 
   //this will set the pointers in the frame structures to the right points in
   //the input and output buffers.
-  avpicture_fill((AVPicture*)inpic,  inbuffer,  raw_pix_fmt, in_width,  in_height);
   avpicture_fill((AVPicture*)outpic, outbuffer, YUV_PIX_FMT, out_width, out_height);
 
   //create the conversion context
   sws_ctx = sws_getContext(in_width,  in_height,  raw_pix_fmt,
-                              out_width, out_height, YUV_PIX_FMT,
-                              SWS_FAST_BILINEAR, NULL, NULL, NULL);
+                           out_width, out_height, YUV_PIX_FMT,
+                           SWS_FAST_BILINEAR, NULL, NULL, NULL);
 
-  /* find the mjpeg video encoder */
+  // find the mjpeg video encoder
   codec = avcodec_find_encoder(AV_CODEC_ID_MJPEG);
   if (!codec) {
       fprintf(stderr, "encode.c: codec not found\n");
@@ -108,8 +110,8 @@ void init_encode(uint8_t *imgbuffer, char *palette)
   /* put sample parameters */
   c->bit_rate = 400000;
   /* resolution must be a multiple of two */
-  c->width = 320;
-  c->height = 240;
+  c->width  = out_width;
+  c->height = out_height;
   /* frames per second */
   c->time_base = (AVRational){1,25};
   c->pix_fmt = JPG_PIX_FMT;
@@ -130,10 +132,24 @@ void uninit_encode(void)
 /*
  * JPEG encoding function
  */
-void encode2jpeg(const char *filename)
+void encode2jpeg(uint8_t *imgbuffer, const char *filename)
 {
+  //set the buffer with the captured frame
+  inbuffer = imgbuffer;
+
+  //create ffmpeg frame structures.  These do not allocate space for image data,
+  //just the pointers and other information about the image.
+  //inpic  = avcodec_alloc_frame();
+  //outpic = avcodec_alloc_frame();
+
+  //this will set the pointers in the frame structures to the right points in
+  //the input and output buffers.
+  avpicture_fill((AVPicture*)inpic,  inbuffer,  raw_pix_fmt, in_width,  in_height);
+  //avpicture_fill((AVPicture*)outpic, outbuffer, YUV_PIX_FMT, out_width, out_height);
+
   /* perform the conversion */
-  ret = sws_scale(sws_ctx, inpic->data, inpic->linesize, 0, in_height, outpic->data, outpic->linesize);
+  ret = sws_scale(sws_ctx, inpic->data,  inpic->linesize, 0, in_height,
+                           outpic->data, outpic->linesize);
 
   /*
    * Encode the frame here...
@@ -174,4 +190,6 @@ void encode2jpeg(const char *filename)
 
   avcodec_close(c);
   av_free_packet(&pkt);
+  //av_free(inpic);
+  //av_free(outpic);
 }

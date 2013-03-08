@@ -14,6 +14,10 @@ function saveConfig() {
   fs.writeFileSync('config/nodeminderjs.conf', JSON.stringify(cfg, null, 4), 'utf8');
 }
 
+function getCfg() {
+  return cfg;
+}
+
 function getCamCfg(id) {
   return cfg.cameras[id];
 }
@@ -22,7 +26,7 @@ function getCamerasCfg() {
   return cfg.cameras;
 }
 
-function getCamerasSortedArray(){
+function getCamerasSortedArray() {
   a = []
   for (c in cfg.cameras)
     a.push(c);
@@ -37,26 +41,37 @@ function getEventsCfg() {
   return cfg.events;
 }
 
+function getCustomCfg() {
+  return cfg.custom;
+}
+
 function saveConfigToTmp() {
   /*
    * Save config file in /tmp in the format:
-   * cam,descr,local,device,channel,format,palette,width,height,fps,rec_on,pixel_limit,image_limit
-   * |01|descr|local|/dev/video0|0|NTSC|BGR24|320|240|3|1|6|2|
+   * cam,device,channel,descr,type,format,palette,width,height,fps,rec_on,pixel_limit,image_limit
+   * |01|/dev/video0|0|descr|local|NTSC|BGR24|320|240|3|1|6|2|
    * ...
+   * |devices|2|8|
    * |server|8080|
+   * |events|/var/nodeminderjs/events/|
    */
   var c = cfg.cameras;
   var s = '';
+  var a = getCamerasSortedArray();  // ToDo: sort array by device/channel
 
-  for (var k in c) {
+  for (var i in a) {
+    var k = a[i];
     var v = c[k];
-    s = s + '|' + k + '|' + v.descr + '|' + v.type + '|' + v.device + '|' + v.channel;
+    s = s + '|' + k + '|' + v.device + '|' + v.channel + '|' + v.descr + '|' + v.type;
     s = s + '|' + v.format + '|' + v.palette + '|' + v.width + '|' + v.height + '|' + v.fps;
     s = s + '|' + v.recording.rec_on;
     s = s + '|' + v.recording.change_detect.pixel_limit;
     s = s + '|' + v.recording.change_detect.image_limit;
     s = s + '|\n';
   }
+
+  s = s + '|devices|' + cfg.devices.captures_per_frame + '|' +
+                        cfg.devices.buffers_per_input  + '|\n';
 
   s = s + '|server|' + cfg.server.port + '|\n';
   
@@ -67,8 +82,10 @@ function saveConfigToTmp() {
 
 exports.loadConfig = loadConfig;
 exports.saveConfig = saveConfig;
+exports.getCfg = getCfg;
 exports.getCamCfg = getCamCfg;
 exports.getCamerasCfg = getCamerasCfg;
 exports.getCamerasSortedArray = getCamerasSortedArray;
 exports.getServerCfg = getServerCfg;
 exports.getEventsCfg = getEventsCfg;
+exports.getCustomCfg = getCustomCfg;

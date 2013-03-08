@@ -7,6 +7,7 @@ var config = require('../config');
 var app    = require('../app');
 
 var video  = require('./video');
+var thumb  = require('./thumb');
 
 exports.index = function(req, res) {
   res.render('index', { title: 'NodeMinder.js', 
@@ -15,21 +16,57 @@ exports.index = function(req, res) {
 };
 
 exports.grid = function(req, res) {
-  var cameras = config.getCamerasCfg();
-  a = '';
-  for (var c in cameras) {
-    a = a + "'" + c + "',";
-  }
-  res.render('grid', { title: 'NodeMinder.js Grid', cameras: cameras, array: a });
+  if (req.params.custom)
+    var id = req.params.custom;
+  else
+    var id = '%';    
+
+  var dir = config.getCustomCfg().grid;
+  var fname = dir + id + '.json';
+
+  fs.readFile(fname, 'utf8', function(err, data) {
+    //if (err) throw err;  // ToDo: log error instead of throw
+    if (!err) {
+      var custom = JSON.parse(data);
+      res.render('grid', { title: 'Grid', cameras: custom.cameras, size_info: custom.size_info });
+    } else {
+      // ToDo: create grid with default cameras set
+      var sorted = config.getCamerasSortedArray();
+      //var camCfg = config.getCamerasCfg();
+      var t = 0;
+      var l = 0;
+      var cameras = [];
+      for (var i=0; i<sorted.length; i++) {
+        cameras.push({
+          id: 'cam' + sorted[i],
+          top: t,
+          left: l,
+          width: 320,
+          height: 240
+        });
+        if (!((i+1)%4)) {
+          t += 240;
+          l = 0;
+        } else {
+          l += 320;
+        }
+      }
+      res.render('grid', { title: 'Grid', cameras: cameras, size_info: {} });
+    }
+  });
 };
 
 exports.view = function(req, res) {
   var cam = '0' + req.params.id;
   cam = cam.substr(cam.length - 2, 2);
-  var camCfg = config.getCamCfg(cam);
-  var cameras = {};
-  cameras[cam] = camCfg;
-  res.render('grid', { title: 'NodeMinder.js View', cameras: cameras, array: "'"+cam+"'" });
+  var cameras = [{
+    id: 'cam' + cam,
+    top: 0,
+    left: 0,
+    width: 320,
+    height: 240
+  }];
+  res.render('grid', { title: 'View', cameras: cameras });
 };
 
 exports.events = function(req, res) {
@@ -56,13 +93,74 @@ exports.getVideosByDate = function(req, res) {
   fs.readdir(dir + camera + '/' + req.params.date, function(err, files) {
     //if (err) throw err;
     if (!err) {
-      //for (f in files.sort()) {
-      //  console.log(files[f]);
-      //}
-      
-      res.json(files.sort());
+      if (req.params.hour) {
+        var hlist = [];
+        for (var i in files.sort()) {
+          //console.log(files[f]);
+          if (files[i].substr(0,2) == req.params.hour)
+            hlist.push(files[i]);
+        }
+        res.json(hlist);
+      }
+      else
+        res.json(files.sort());
     } else {
       res.json([]);
     }
   });
+}
+
+exports.saveCustomGrid = function(req, res) {
+  if (req.params.id)
+    var id = req.params.id;
+  else
+    var id = '%';    
+
+  var dir = config.getCustomCfg().grid;
+  var fname = dir + id + '.json';
+  fs.writeFile(fname, JSON.stringify(req.body, null, 4),
+               'utf8', function(err) {
+    //if (err) throw err;  // ToDo: log error instead of throw
+    if (!err)
+      res.send('ok');
+    else
+      res.send(err.message);
+  });
+}
+
+/*
+ * Client:
+ * 
+ * function loadConfig() {
+ *   $.getJSON(serverUrl + '/ajax/load' + path, function(data) {
+ *     size_info = data.size_info;
+ *     var cameras = data.cameras;
+ */
+exports.loadCustomGrid = function(req, res) {
+  if (req.params.id)
+    var id = req.params.id;
+  else
+    var id = '%';    
+
+  var dir = config.getCustomCfg().grid;
+  var fname = dir + id + '.json';
+  fs.readFile(fname, 'utf8', function(err, data) {
+    //if (err) throw err;  // ToDo: log error instead of throw
+    if (!err)
+      res.json(JSON.parse(data));
+    else
+      res.json({});
+  });
+}
+
+/*
+ * Thumbnails 
+ */
+
+exports.makeThumbnails = function(req, res) {
+  thumb.makeThumbnails(req, res);
+}
+  
+exports.viewThumbnails = function(req, res) {
+  thumb.viewThumbnails(req, res);
 }

@@ -1,0 +1,29 @@
+extends base
+
+block stylesheets
+  link(rel='stylesheet', href='/stylesheets/style.css')
+  link(rel='stylesheet', href='/stylesheets/thumb.css')
+  
+block content
+  h1 Thumbnails
+  div#thumbnails
+    table
+      tbody
+        - for (var i=0; i<thumbs.length; )
+          - if (thumbs[i])
+            tr
+              td
+                img(src="#{thumbs[i++]}", width="96", height="72")
+              - if (thumbs[i])
+                td
+                  img(src="#{thumbs[i++]}", width="96", height="72")
+              - if (thumbs[i])
+                td
+                  img(src="#{thumbs[i++]}", width="96", height="72")
+              - if (thumbs[i])
+                td
+                  img(src="#{thumbs[i++]}", width="96", height="72")
+
+  p
+   a(href='/thumbnails/make', target='_blank') Make new thumbnails 
+

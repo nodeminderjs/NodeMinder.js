@@ -9,23 +9,59 @@ block content
   table#cameras
     thead
       tr.head
+        th Image
         th Camera
         th Description
-        th Fps
-        th(colspan=2)
-        //th
+        th fps
+        th Rec
+        th Rec<br />fps
+        th
+        th.black
+        - if (sorted.length > 1)
+          th Image
+          th Camera
+          th Description
+          th fps
+          th Rec
+          th Rec<br />fps
+          th
     tbody
-      - var i = -1
-      //each val, key in cameras
-      each key in sorted
-        - ++i
-        tr(class=(i % 2 == 0) ? 'odd' : 'even')
-          td #{key}
-          //td #{val.descr}
-          td #{cameras[key].descr}
-          //td #{val.fps}
-          td #{cameras[key].fps}
-          td
-            a(href='/view/#{key}', target='_blank') View
-          td
-            a(href='/events/#{key}', target='_blank') Events
+      - var j = 0;
+      - var rec = ['-','detect','ON'];
+      - for (var i=0; i<sorted.length; )
+        - if (sorted[i])
+          - var key = sorted[i++]  
+          tr(class=(j++%2) ? 'even' : 'odd')
+            td
+              img.thumb(src="/images/thumbnails/#{key}_96x72.jpg", width="72", height="54") // 64x48
+            td #{key}
+            td #{cameras[key].descr}
+            td #{cameras[key].fps}
+            td #{rec[cameras[key].recording.rec_on]}
+            td #{cameras[key].recording.rec_fps}
+            td
+              a(href='/view/#{key}', target='_blank') View
+              br
+              a(href='/events/#{key}') Events
+              br
+              a(href='/config/#{key}') Config
+            td.black
+            - if (sorted[i])
+              - var key = sorted[i++]  
+              td
+                img.thumb(src="/images/thumbnails/#{key}_96x72.jpg", width="72", height="54")
+              td #{key}
+              td #{cameras[key].descr}
+              td #{cameras[key].fps}
+              td #{rec[cameras[key].recording.rec_on]}
+              td #{cameras[key].recording.rec_fps}
+              td
+                a(href='/view/#{key}', target='_blank') View
+                br
+                a(href='/events/#{key}') Events
+                br
+                a(href='/config/#{key}') Config
+
+  p
+    a(href='/thumbnails') Thumbnails 
+            

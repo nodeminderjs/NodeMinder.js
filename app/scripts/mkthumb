@@ -1,0 +1,6 @@
+#!/bin/bash
+cp /dev/shm/*.jpg $1
+for f in $1/??.jpg
+  do
+  ffmpeg -f image2 -i "$f" -s 96x72 -y "${f%.jpg}_96x72.jpg"
+done
