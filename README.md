@@ -1,6 +1,6 @@
-# NodeMinder.js
-
 ![NodeMinder.js logo](http://1.bp.blogspot.com/-9oHF9J9vZwA/UTtNnCr8TjI/AAAAAAAAAD8/x_moFl9drnQ/s1600/nodeminderjs2.png)
+
+# NodeMinder.js
 
 Linux video camera security and surveillance solution based on ZoneMinder and developed on top of a node.js stack.
 
