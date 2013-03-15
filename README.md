@@ -1,4 +1,4 @@
-![NodeMinder.js logo](http://1.bp.blogspot.com/-nY_79Fw8dOk/UTubXGK1jMI/AAAAAAAAAEI/xZkSDCaPV3Y/s1600/banner01.jpg)
+![NodeMinder.js logo](http://2.bp.blogspot.com/-yLlUNGSrJ5I/UUNr-qIoaeI/AAAAAAAAAEY/J13b7sezCzg/s1600/banner03.jpg)
 
 # NodeMinder.js
 
