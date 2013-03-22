@@ -65,43 +65,48 @@ function grabFrame(io, device) {
       c = initCamera(cam);
     }
   
-    if (cmd == 'J') {
-      // Every n_frames update tms and divs 
-      updateTmsDiv(c, t);
-      
-      // Send jpeg image to connected sockets
-      if (!(c.frameCount++ % c.div))
-        sendFrame(cam, jpg, io, st, 1000/c.tms/c.div);
+    // Every n_frames update tms and divs 
+    updateTmsDiv(c, t);
+    
+    // Send jpeg image to connected sockets
+    if (!(c.frameCount++ % c.div)) {
+      //var recStart = c.recording ? c.recStartDate+' '+c.recStartTime : '';
+      sendFrame(cam, jpg, io, st, 1000/c.tms/c.div);
+    }
+    
+    // Process event recording
+    if (c.rec) {
+      if ((st == 'C' || c.rec == REC_MODE_CONTINUOUS) && (!c.recording)) {
+        startRecording(c, d, t);
+      }
 
-      // Process event recording
-      if (c.rec) {
-        if ((st == 'C' || c.rec == REC_MODE_CONTINUOUS) && (!c.recording)) {
-          startRecording(c, d, t);
-        }
-        
-        if ((c.rec == REC_MODE_DETECT) && (st == 'C') && (c.recording)) {
-          c.recStopAfterMs = t + c.recAfterMs;
-        }
-        
-        // Save frame
-        if (c.recording) {
-          if ( !(c.recFrame++ % c.rec_div) ) {
-            if ( (t >= c.recStopMs) || 
-                 ((c.rec == REC_MODE_DETECT) && (t >= c.recStopAfterMs)) ) {
-              // stop recording
-              c.recording = false;
-            }
-            // save frame to recording buffer
-            saveFrame(c, jpg, t);
+      if (c.cfg.alarm && !c.alarmed && (st == 'C') && (st != c.prevState))
+        c.alarmed = true;
+
+      if ((c.rec == REC_MODE_DETECT) && (st == 'C') && (c.recording)) {
+        c.recStopAfterMs = t + c.recAfterMs;
+      }
+
+      // Save frame
+      if (c.recording) {
+        if ( !(c.recFrame++ % c.rec_div) ) {
+          if ( (t >= c.recStopMs) || 
+              ((c.rec == REC_MODE_DETECT) && (t >= c.recStopAfterMs)) ) {
+            // stop recording
+            c.recording = false;
           }
+          // save frame to recording buffer
+          saveFrame(c, jpg, t, io);
         }
-        else {
-          // not recording (idle) - copy the frame to the next recording buffer
-          if ( !(c.recFrame++ % c.rec_div) )
-            saveFrame000(c, jpg);
-        }
-      }   // if (rec)
-    }     // if (cmd == 'J')
+      }
+      else {
+        // not recording (idle) - copy the frame to the next recording buffer
+        if ( !(c.recFrame++ % c.rec_div) )
+          saveFrame000(c, jpg);
+      }
+    }   // if (rec)
+
+    c.prevState = st;
   });     // grab.stdout.on('data',
 
   grab.stderr.on('data', function(data) {
@@ -123,6 +128,8 @@ function initCamera(cam) {
   // Get camera cfg
   c.cfg = config.getCamCfg(cam);
   c.frameCount = 0;
+  c.prevState = '';        // Previous state - I|C
+  c.alarmed = false;
 
   c.time    = Date.now();  // current frame receiving time in ms for the camera
   c.tms     = 300;         // current camera tms (time between frames in ms)
@@ -180,13 +187,14 @@ function sendFrame(cam, jpg, io, st, fps) {
     
     var s = (Math.round(fps * 10) / 10) + '.0';
     s = s.substr(0,3);
-    
+
     io.sockets.in(cam).emit('image', {
       server: serverName,
       camera: cam,
       time: libjs.formatDateTime(),
       status: st,
       fps: s,
+      //recStart: recStart,
       //jpg: 'data:image/gif;base64,' + data
       jpg: 'data:image/jpeg;base64,' + data
     });
@@ -197,6 +205,7 @@ function startRecording(c, d, t) {
   c.recording = true;
   c.recFrame = 0;
   c.recFrameCount = 0;
+  c.alarmed = false;
 
   c.recStartDate = libjs.getLocalDate(d).toISOString().substr(0,10);  // Ex.: '2012-02-18'
   var s = libjs.formatDateTime(d);
@@ -224,7 +233,7 @@ function startRecording(c, d, t) {
 /*
  * Save frame
  */
-function saveFrame(c, jpg, t) {
+function saveFrame(c, jpg, t, io) {
   var recFrameCount = ++(c.recFrameCount);
   var recTimeStamp = c.recTimeStamp;
   var framesDir = c.framesDir;
@@ -234,6 +243,7 @@ function saveFrame(c, jpg, t) {
   var recStartMs = c.recStartMs;
   var recStartDate = c.recStartDate;
   var stopMs = t;
+  var alarmed = c.alarmed;
   
   fs.readFile(TMP_DIR+jpg, function(err, data) {
     fs.writeFile(fname, data, function(err) {
@@ -246,12 +256,12 @@ function saveFrame(c, jpg, t) {
                       framesDir + recTimeStamp + '00000.jpg', function (err) {
               // if (err) throw err;  // ToDo: log error
               var fps = ((recFrameCount + 1) / (stopMs - recStartMs)) * 1000;
-              createVideo(c, recStartDate, recTimeStamp, framesDir, fps);
+              createVideo(c, recStartDate, recTimeStamp, framesDir, fps, io, alarmed);
             });
           }
           else {
             var fps = ((recFrameCount) / (stopMs - recStartMs)) * 1000;
-            createVideo(c, recStartDate, recTimeStamp, framesDir, fps);
+            createVideo(c, recStartDate, recTimeStamp, framesDir, fps, io, alarmed);
           }
         });  // fs.exists
       }
@@ -259,7 +269,7 @@ function saveFrame(c, jpg, t) {
   });
 }
 
-function createVideo(c, recStartDate, recTimeStamp, framesDir, fps) {
+function createVideo(c, recStartDate, recTimeStamp, framesDir, fps, io, alarmed) {
   if (c.cam == '05')
     console.log(libjs.formatDateTime() + ' - ffmpeg spawn, Date.now()=' + Date.now() + ', fps =' + fps);
   
@@ -284,6 +294,14 @@ function createVideo(c, recStartDate, recTimeStamp, framesDir, fps) {
     if (c.cam == '05')
       console.log(libjs.formatDateTime() + ' - ffmpeg exit,  Date.now()=' + Date.now() + ', code=' + code + ', signal=' + signal);
 
+    if (alarmed) {
+      io.sockets.in(c.cam).emit('alarm', {
+        server: serverName,
+        camera: c.cam,
+        recStart: recStartDate + ' ' + recTimeStamp.substr(11,6)
+      });
+    }
+    
     removeFrames(ffmpeg.filesToRemove);
   });
 }

@@ -240,4 +240,147 @@ $(function() {
       shftDown = false;  
     }
   });
+
+  
+  /*
+   * Alarm
+   */ 
+
+  $('#alarm-dialog').dialog({
+    modal: true,
+    autoOpen: false,
+    width: 536,
+    buttons: {
+      Ok: function() {
+        $(this).dialog("close");
+      }
+    },
+    open: function( event, ui ) {
+      var cam = $('#alarm-datetime').text().substr(0,2);
+      var dt = $('#alarm-ul li').text();                  // '2013-03-11 14:47:58'
+      var d = dt.substr(0,10);
+      var t = dt.substr(11,8);
+      showVideo(t, cam, d);
+    }
+  });
+
+  socket.on('alarm', function(data) {
+    var cam = data.camera;
+    var id = '#cam' + cam;
+    if ( $(id).hasClass('alarm') && !($(id+' .color').hasClass('alarmed')) ) {
+      $(id+' .color').addClass('alarmed');
+      alarmTimes[cam] = data.recStart;
+      alarmIntervals[cam] = setInterval(function(){
+        $(id+' .color').toggleClass('alarmed2');
+      }, 620);          
+    }
+  });
+  
+  $('.color').click(function(e) {
+    e.preventDefault();
+    if ( $(this).hasClass('alarmed') ) {
+      $(this).removeClass('alarmed');
+      $(this).removeClass('alarmed2');
+      var id = $(this).parent().attr('id');
+      var cam = id.substr(3,2);
+      clearInterval(alarmIntervals[cam]);
+      // send alarm info request to server
+      socket.emit('get_alarm_info', { camera: cam, datetime: alarmTimes[cam] });      
+    }
+  });
+
+  //var showVideo = function(h, cam, d) {
+  function showVideo(h, cam, d) {
+    var f = window.location.protocol + '//' + window.location.host +
+            '/video/' + cam + '/' + d + '/' + 
+            h.substr(0,2) + h.substr(3,2) + h.substr(6,2);
+    var htmlStr = '<video width="320" height="240" controls autoplay>' +
+                  '<source src="' + f + '" type="video/mp4">' +
+                  'Your browser does not support the video tag.' +
+                  '</video>';
+    $('#alarm-video').html(htmlStr);
+  }
+
+  // receive alarm info from server
+  socket.on('alarm_info', function(data) {
+    var cam = data.camera;
+    var d   = data.date;
+    var t   = data.time;
+    $('#alarm-datetime').text(cam+' '+d+' '+t.substr(0,2)+':'+t.substr(2,2)+':'+t.substr(4,2));
+    
+    $('#alarm-ul').html('');
+    var items = [];
+    for (var i in data.events) {
+      var e = data.events[i];
+      if (i == 0)
+        items.push('<li class="selected">'+e+'</li>');
+      else
+        items.push('<li>'+e+'</li>');
+    }
+    $('#alarm-ul').html(items.join(''));
+    
+    $('#alarm-ul li').click(function() {
+      $('#alarm-ul li.selected').removeClass('selected');
+      $(this).addClass('selected');
+      var dt = $(this).text();      // '2013-03-11 14:47:58'
+      var d = dt.substr(0,10);
+      var t = dt.substr(11,8);
+      showVideo(t, cam, d);
+    });
+
+    $('#alarm-dialog').dialog('open');
+  });
+
+  /*
+   * Registry
+   */ 
+
+  $('#registry-dialog').dialog({
+    modal: true,
+    autoOpen: false,
+    width: 620,
+    buttons: {
+      Ok: function() {
+        $(this).dialog("close");
+      }
+    },
+  });
+  
+  $('.registry').click(function(e) {
+    e.preventDefault();
+    $('#reg-id').val('');
+    $('#reg-info').hide();
+    $('#reg-found').hide();
+    $('#reg-info table').html('');
+    $('#registry-dialog').dialog('open');
+  });
+
+  $('#reg-id').keydown(function(event) {
+    //alert(event.which);
+    if (event.which == 13) {  // Enter
+      //alert($(this).val());
+      socket.emit('registry_search', {id: $(this).val()});      
+    }
+  });
+
+  socket.on('registry_info', function(data) {
+    $('#reg-info').show();
+    if (data.found) {
+      $('#reg-found').hide();
+      //$('#reg-info table').html('');
+      var s = '';
+      alert(JSON.stringify(data));
+      for (var f in data.rec) {
+        var v = data.rec[f];
+        s += '<tr><td><label for="reg-' + f + '">' + f.toUpperCase() + ':</label></td>';
+        s += '<td><input id="reg-' + f + '" type="text" size="45" value="' + v + '"></input></td></tr>';
+      }
+      $('#reg-info table').html(s);
+    }
+    else {
+      $('#reg-found').text('Not Found!').show();
+    }
+  });
+    
 });
+

@@ -28,7 +28,10 @@ exports.grid = function(req, res) {
     //if (err) throw err;  // ToDo: log error instead of throw
     if (!err) {
       var custom = JSON.parse(data);
-      res.render('grid', { title: 'Grid', cameras: custom.cameras, size_info: custom.size_info });
+      res.render('grid', { title: 'Grid', 
+                           cameras: custom.cameras,
+                           size_info: custom.size_info,
+                           cfg: config.getCamerasCfg()});
     } else {
       // ToDo: create grid with default cameras set
       var sorted = config.getCamerasSortedArray();
@@ -51,7 +54,10 @@ exports.grid = function(req, res) {
           l += 320;
         }
       }
-      res.render('grid', { title: 'Grid', cameras: cameras, size_info: {} });
+      res.render('grid', { title: 'Grid',
+                           cameras: cameras,
+                           size_info: {},
+                           cfg: config.getCamerasCfg()});
     }
   });
 };
@@ -66,7 +72,9 @@ exports.view = function(req, res) {
     width: 320,
     height: 240
   }];
-  res.render('grid', { title: 'View', cameras: cameras });
+  res.render('grid', { title: 'View',
+                       cameras: cameras,
+                       cfg: config.getCamerasCfg() });
 };
 
 exports.events = function(req, res) {

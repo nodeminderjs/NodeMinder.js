@@ -328,9 +328,9 @@ static void init_mmap(void)
 
     CLEAR(buf);
 
-    buf.type        = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    buf.memory      = V4L2_MEMORY_MMAP;
-    buf.index       = n_buffers;
+    buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
+    buf.index  = n_buffers;
 
     if (-1 == xioctl(fd, VIDIOC_QUERYBUF, &buf))
       errno_exit("VIDIOC_QUERYBUF");

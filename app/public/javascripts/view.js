@@ -1,4 +1,7 @@
 var serverUrl = window.location.protocol + '//' + window.location.host;
+var socket;
+var alarmTimes = {};
+var alarmIntervals = {};
 
 function subscribeCameras(socket) {
   $('.camera').each(function(){
@@ -8,7 +11,7 @@ function subscribeCameras(socket) {
 }
 
 $(function() {
-  var socket = io.connect(serverUrl, {
+  socket = io.connect(serverUrl, {
     'reconnection limit': 3000,
     'max reconnection attempts': 100000
   });
@@ -42,15 +45,20 @@ $(function() {
   socket.on('image', function(data) {
     var cam = data.camera;
     var id = '#cam' + cam;
+
     $(id + ' img').attr('src', data.jpg);
     $(id + ' .time').text(data.time);
     $(id + ' .fps').text(data.fps + ' fps');
+
     var st = data.status;
-    if (st == 'C')
-      $(id + ' .info').addClass('change');
-    else
-      $(id + ' .info').removeClass('change');
+    if (st == 'C') {
+      $(id+' .info').addClass('change');
+    }
+    else {
+      $(id+' .info').removeClass('change');
+    }
   });
+
 });
 
 $(function() {

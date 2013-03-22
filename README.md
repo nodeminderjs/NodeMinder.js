@@ -38,13 +38,16 @@ client: Google Chrome browser version 25.0.1364.97 m.
 * [Open in your browser](#open-in-your-browser)
 
 
-## Special features
+## Project Differentials
 
 * The client is a browser. No need to install any additional software on the client.
 * You can fully customize the cameras display screen. You can move and resize the cameras
 images, bring them to front or send to back. We can have several different custom screens.
 * In the next release, it will be possible to add cameras from different servers on the
 same screen.
+* It's open source.
+* It runs on a reliable OS. It runs on Linux.
+* It's free.
 
 
 ## Requirements
@@ -52,26 +55,13 @@ same screen.
 * The system is designed to use modern hardware.
 
 
-## Release 0.0.9
+## Release 0.1.0
 
 ### Release notes
 
-* Refactored the event recording routine to use /dev/shm buffers to store the frames used to
-create the video.
-* Refactored grabc to use mmap instead read capture method.
-* Added continuous recording mode.
-* Configured a delay to start each device grab process.
-* Added '-preset veryfast' parameter to create video ffmpeg command.
-* New /scripts folder to store some usefull scripts.
-* New /app/scripts folder to store some shell scripts used by the system.
-* New client features: snap, keyboard keys to move and resize cameras, context menu,
-main manu and more.
-* Moved the saved client grid configurations from the client to the server.
-* Cameras thumbnails.
-* New main page with thumbnails and more links.
-* New configuration parameters.
-* New cameras parameters: rec_fps and remote_fps.
-* Adjust the cameras fps rate relative to the real device fps rate.
+* Alarms
+* Registry
+* Redis
 
 ## Setup
 

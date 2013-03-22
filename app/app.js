@@ -7,8 +7,10 @@ var express = require('express')
   , fs      = require('fs')
   , exec    = require('child_process').exec;
 
-var grab   = require("./grab"),   // use c code to grab frames
-    config = require("./config");
+var grab     = require("./grab"),   // use c code to grab frames
+    config   = require("./config"),
+    alarm    = require("./alarm"),
+    registry = require("./registry");
 
 var formatDateTime = require('./libjs').formatDateTime;
 var sleepSync      = require('./libjs').sleepSync;
@@ -44,6 +46,9 @@ if (!fs.existsSync(dir))
 // create thumbnails dir
 if (!fs.existsSync(THUMBNAILS_DIR))
   fs.mkdirSync(THUMBNAILS_DIR);  // ToDo: change mode
+
+// load and initialize registry data
+registry.loadRegistry();
 
 /*
  * Initialize cameras
@@ -161,6 +166,14 @@ io.sockets.on('connection', function (socket) {
       cfg:    config.getCamCfg(data.camera)      
     });
     socket.join(data.camera);
+  });
+
+  socket.on('get_alarm_info', function(data) {
+    alarm.getAlarmInfo(socket, data);
+  });
+  
+  socket.on('registry_search', function(data) {
+    registry.search(socket, data);
   });
 });
 

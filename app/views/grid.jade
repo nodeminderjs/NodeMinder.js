@@ -9,22 +9,25 @@ block javascripts
   script(src='/javascripts/jquery-ui.custom.min.js')
   script(src='/socket.io/socket.io.js')
   script(src='/javascripts/lib.js')
-  script(src='/javascripts/grid.js')
   script(src='/javascripts/view.js')
+  script(src='/javascripts/grid.js')
 
 block top
 
 block content
   div#cameras
     each cam in cameras
-      div.camera.draggable(id="#{cam.id}", style="position:absolute; margin-left:0; margin-top:0; top:#{cam.top}px; left:#{cam.left}px;")
+      - var classes = 'camera draggable';
+      - if (cfg[cam.id.substr(3,2)].alarm>0) classes += ' alarm'
+      - if (cfg[cam.id.substr(3,2)].registry.reg_on>0) classes += ' registry'
+      div(id="#{cam.id}", class="#{classes}", style="position:absolute; margin-left:0; margin-top:0; top:#{cam.top}px; left:#{cam.left}px;")
         img.resizable(src='#', width="#{cam.width}", height="#{cam.height}") 
         div.info
           div.time
           div.cam
           div.fps
           div.descr
-      
+        div.color
   
 
   //input#testButton(type="button", value="test")
@@ -68,4 +71,41 @@ block content
     .alert-msg
 
   //#debug debug
-  
+
+  #alarm-dialog(title="Alarm")
+    h3#alarm-datetime Date
+    div#alarm-list
+      ul#alarm-ul
+        li 15:30:46
+        li 15:45:25
+        li 15:59:18
+        li 16:12:21
+    div#alarm-video.
+      <video width="320" height="240" controls>
+        <source src="#" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>  
+
+  #registry-dialog(title="Registry")
+    div#reg-form
+      fieldset
+        legend Id
+        //label(for='reg-id') Id:
+        input#reg-id(type='text', value='')
+        button Search
+      fieldset#reg-info
+        legend Info
+        #reg-found
+        table
+          tbody
+            tr
+              td
+                label(for='reg-nome') Nome:
+              td
+                input(id='reg-nome', type='text', value='')
+            tr
+              td
+                label(for='reg-empresa') Empresa:
+              td
+                input(id='reg-empresa', type='text', value='')
+                    
