@@ -1,16 +1,15 @@
-// Copyright NodeMinder.js
-//
-var express = require('express')
-  , routes  = require('./routes')
-  , http    = require('http')
-  , path    = require('path')
-  , fs      = require('fs')
-  , exec    = require('child_process').exec;
+/*
+ * Copyright NodeMinder.js 
+ */ 
+var express  = require('express'),
+    routes   = require('./routes'),
+    http     = require('http'),
+    path     = require('path'),
+    fs       = require('fs'),
+    exec     = require('child_process').exec;
 
-var grab     = require("./grab"),   // use c code to grab frames
-    config   = require("./config"),
-    alarm    = require("./alarm"),
-    registry = require("./registry");
+var grab     = require('./grab'),
+    config   = require('./config');
 
 var formatDateTime = require('./libjs').formatDateTime;
 var sleepSync      = require('./libjs').sleepSync;
@@ -30,16 +29,15 @@ exports.THUMBNAILS_DIR = THUMBNAILS_DIR;
 exports.BASH_DIR = BASH_DIR;
 
 /*
- * Read config file
+ * Read config file and initialize global cfg var
  */
 config.loadConfig();
-var serverCfg = config.getServerCfg();
 
 // create custom grid dir
-dir = config.getCustomCfg().dir;
+dir = cfg.custom.dir;
 if (!fs.existsSync(dir))
   fs.mkdirSync(dir);  // ToDo: change mode
-dir = config.getCustomCfg().grid;
+dir = cfg.custom.grid;
 if (!fs.existsSync(dir))
   fs.mkdirSync(dir);  // ToDo: change mode
 
@@ -47,60 +45,13 @@ if (!fs.existsSync(dir))
 if (!fs.existsSync(THUMBNAILS_DIR))
   fs.mkdirSync(THUMBNAILS_DIR);  // ToDo: change mode
 
-// load and initialize registry data
-registry.loadRegistry();
-
 /*
  * Initialize cameras
  */
-var cameras = config.getCamerasCfg(), dir, c;
-
-for (c in cameras) {
-  // create buffer dirs to store event recordings frames
-  for (var i=1; i<=3; i++) {
-    dir = TMP_DIR + c + '-' + i;
-    if (!fs.existsSync(dir))
-      fs.mkdirSync(dir);
-    else
-      exec('rm ' + TMP_DIR + c + '-' + i + '/*.jpg', function (error, stdout, stderr) {
-        //if (error !== null) {
-        //  console.log('exec error: ' + error);
-        //}
-      });
-  }
-  
-  // create event recordings dir
-  dir = config.getEventsCfg().dir + c + '/';  // ToDo: use a more secure way to join paths
-  if (!fs.existsSync(dir))
-    fs.mkdirSync(dir);  // ToDo: change mode
-}
-
+grab.initCameras(TMP_DIR);
 sleepSync(100);
+//process.exit(0);
 
-//exec('echo $PATH', function (error, stdout, stderr) {console.log('$PATH='+stdout)});
-
-/*
- * Start one grab process for each device
- */
-var devices = [];
-for (c in cameras)
-  if ( devices.indexOf(cameras[c].device) == -1 )
-    devices.push(cameras[c].device);
-
-for (i in devices.sort()) {
-  console.log(devices[i]);
-}
-
-//exec('/usr/bin/killall -u $USER grab')
-exec('killall -u $USER grab', function (error, stdout, stderr) {
-  //var delay = 100;
-  for (i in devices.sort()) {
-    var t0 = Date.now();
-    console.log('starting grab for ' + devices[i] + ' at ' + Date.now());
-    grab.grabFrame(io, devices[i]);    // run process to grab and compare frames
-    sleepSync(100);
-  }
-});
 
 // check if thumbnails exists, if not, create them
 setTimeout(function() {
@@ -114,7 +65,7 @@ var port;
 if (process.argv[2])
   port = process.argv[2];
 else
-  port = serverCfg.port;
+  port = cfg.server.port;
 
 app.configure(function(){
   app.set('port', process.env.PORT || port);
@@ -166,14 +117,6 @@ io.sockets.on('connection', function (socket) {
       cfg:    config.getCamCfg(data.camera)      
     });
     socket.join(data.camera);
-  });
-
-  socket.on('get_alarm_info', function(data) {
-    alarm.getAlarmInfo(socket, data);
-  });
-  
-  socket.on('registry_search', function(data) {
-    registry.search(socket, data);
   });
 });
 

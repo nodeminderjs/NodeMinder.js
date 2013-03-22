@@ -22,16 +22,17 @@ I am developing the system using a Linux server with the following configuration
 [portuguese](http://www.geovision.com.tw/PT/Prod_GV800.asp) |
 [spanish](http://www.geovision.com.tw/SP/Prod_GV800.asp) |
 [install pdf](http://www.geovision.com.tw/Install_Products/GV-650800A.pdf) )
+* EasyCAP 002 USB 2.0 DVR device ( [easycap-somagic-linux](https://code.google.com/p/easycap-somagic-linux/) )
 * Ubuntu Server 12.04.1 LTS
 
 I am using an old Windows XP (argh!) desktop (AMD Athlon 64 X2 4000+ / 4 GB DDR2) to run the
-client: Google Chrome browser version 25.0.1364.97 m. 
+client - Google Chrome browser version 25.0.1364.172 m. 
 
 ## Contents
 
-* [Special features](#special-features)
+* [Project Differentials](#project-differentials)
 * [Requirements](#requirements)
-* [Release 0.0.9](#release-009)
+* [Release 0.1.0](#release-010)
 * [Setup](#setup)
 * [Configuration](#configuration)
 * [Running the server](#running-the-server)
@@ -40,7 +41,8 @@ client: Google Chrome browser version 25.0.1364.97 m.
 
 ## Project Differentials
 
-* The client is a browser. No need to install any additional software on the client.
+* The client is a browser.
+No need to install any additional software on the client to view the camera images.
 * You can fully customize the cameras display screen. You can move and resize the cameras
 images, bring them to front or send to back. We can have several different custom screens.
 * In the next release, it will be possible to add cameras from different servers on the
@@ -52,16 +54,19 @@ same screen.
 
 ## Requirements
 
-* The system is designed to use modern hardware.
+* This system is designed to use modern hardware, not legacy old hardware.
 
 
 ## Release 0.1.0
 
 ### Release notes
 
+* Fully refactor of the image capture routines, image change detection,
+frames distribution and recording. These changes were made to make the system more modular,
+to easily accept the addition of new image capture (DVR) cards and devices hardware. 
 * Alarms
 * Registry
-* Redis
+
 
 ## Setup
 

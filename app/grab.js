@@ -1,11 +1,14 @@
-// Copyright NodeMinder.js
-//
+/* 
+ * Copyright NodeMinder.js
+ */
+var fs    = require('fs');
 var spawn = require('child_process').spawn;
 var exec  = require('child_process').exec;
-var fs    = require('fs');
 
 var config = require('./config');
 var libjs  = require('./libjs');
+
+var DRIVER_DIR = __dirname + '/driver/';
 
 var REC_AFTER_TIME  =  3;     // number of seconds to record after idle
 var MAX_VIDEO_TIME  = 60;     // max video time in seconds
@@ -23,6 +26,33 @@ var serverName = '';
 
 var grabSpawn = {};
 var cameras = {};
+
+var sleepSync = require('./libjs').sleepSync;
+
+function initCameras(tmpDir) {
+  var camerasCfg = cfg.cameras;
+  var drivers = [];
+  
+  var initArray = [];
+  for (var i in camerasCfg) {
+    initArray.push(0);
+    var c = camerasCfg[i];
+    if (drivers.indexOf(c.driver.id) < 0) {
+      drivers.push(c.driver.id);
+    }
+  }
+  console.log(drivers);
+  for (i in drivers) {
+    var driver = require('./driver/' + drivers[i]);
+    driver.initCameras(camerasCfg, initArray, tmpDir, processFrame);
+  }
+}
+exports.initCameras = initCameras;
+
+function processFrame(id, file) {
+
+}
+
 
 function grabFrame(io, device) {
   if (grabSpawn[device]) {
