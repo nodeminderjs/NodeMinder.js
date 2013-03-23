@@ -11,27 +11,21 @@
  *   uninit_device()
  *   close_device()
  *
+ * init_mmap()
  * read_frame()          // VIDIOC_DQBUF, process_image, VIDIOC_QBUF
- * process_image()       // convert_scale, detect_change_gray
+ * process_image()
  */
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 
 #include <getopt.h>           // getopt_long()
 
 #include <fcntl.h>            // low-level i/o
-#include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/time.h>         // for gettimeofday()
 #include <sys/mman.h>
-#include <sys/ioctl.h>
-
-#include <time.h>
 
 #include <linux/videodev2.h>
 
@@ -60,6 +54,17 @@ static char  *device;
 static char  *inputs;    // inputs cam_id:input pairs - ex.: 01:0,05:1,09:2,13:3
 static char  *temp;      // temp dir to save files
 static int    fd = -1;   // device - file descriptor
+
+static void save_buffer_to_file(uint8_t *buffer, size_t size, const char *filename)
+{
+  FILE *f = fopen(filename, "wb");
+  if (!f) {
+    fprintf(stderr, "lib.c: could not open %s to write buffer\n", filename);
+    exit(1);
+  }
+  fwrite(buffer, 1, size, f);
+  fclose(f);
+}
 
 static void errno_exit(const char *s)
 {
@@ -295,25 +300,24 @@ static void stop_capturing(void)
 
 static void process_image(const void *p, int size, int n)
 {
-  int i, ret = 0;
-
-  char file[80];
+  char file[100];
   char cmd[80];
+  char *cam = cameras[n].camera;
 
   /*
-   * Save jpeg file
+   * Save raw file
    */
-  //sprintf(file, "/dev/shm/%s-%d.jpg", cameras[n].camera, cameras[n].jpg_num + 1);
+  sprintf(file, "%s%s-%d.raw", temp, cam, cameras[n].buf_num + 1);
+  save_buffer_to_file(p, size, file);
 
   /*
    * Send command and status to node
    */
-  if (ret)
-    sprintf(cmd, "J%s-%d C", cameras[n].camera, cameras[n].buf_num + 1);
-  else
-    sprintf(cmd, "J%s-%d I", cameras[n].camera, cameras[n].buf_num + 1);
+  sprintf(cmd, "F,%s,%s-%d.raw,320,240", cam, cam, cameras[n].buf_num + 1);
   fprintf(stdout, cmd);
   fflush(stdout);
+
+  cameras[n].buf_num = ++(cameras[n].buf_num) % req_buffers_count;
 }
 
 static int read_frame(int input_frame)
@@ -370,7 +374,6 @@ static void mainloop(void)
 }
 
 // $ ./nmjs-gv-800 -d /dev/video0 -i 01:0,05:1,09:2,13:3 -t /dev/shm/
-
 static void usage(FILE *fp, int argc, char **argv)
 {
   fprintf(fp,

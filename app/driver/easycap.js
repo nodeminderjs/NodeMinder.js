@@ -1,6 +1,7 @@
 /*
  * EasyCAP (model 002) DVR USB 2.0 device driver
  */
+var spawn = require('child_process').spawn;
 var exec = require('child_process').exec;
 
 var DRIVER_ID = 'easycap';

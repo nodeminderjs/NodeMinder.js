@@ -23,10 +23,16 @@ var APP_DIR = __dirname;
 var THUMBNAILS_DIR = __dirname + '/public/images/thumbnails';
 var BASH_DIR = __dirname + '/scripts';
 
+var APP_DRIVER_DIR = __dirname + '/driver/'  // drivers dir
+var APP_SHM_DIR    = '/dev/shm/';            // shared memory dir to store grabbed frames
+
 exports.TMP_DIR = TMP_DIR;
 exports.APP_DIR = APP_DIR;
 exports.THUMBNAILS_DIR = THUMBNAILS_DIR;
 exports.BASH_DIR = BASH_DIR;
+
+GLOBAL.APP_DRIVER_DIR = APP_DRIVER_DIR;
+GLOBAL.APP_SHM_DIR = APP_SHM_DIR;
 
 /*
  * Read config file and initialize global cfg var
