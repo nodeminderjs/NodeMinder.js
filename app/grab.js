@@ -28,8 +28,10 @@ exports.initCameras = initCameras;
 
 function processFrame(id, filename, pixfmt, width, height) {
   var a = filename.split('.');
+  // ffmpeg -v quiet -f rawvideo -pix_fmt bgr24 -s 320x240 -i /dev/shm/17-4.raw -s 320x240 -pix_fmt yuvj420p -y /dev/shm/18-4.jpg
   execFile(APP_FFMPEG, 
            [
+             '-v', 'quiet',      
              '-f', 'rawvideo',
              '-pix_fmt', pixfmt,
              '-s', width + 'x' + height,
@@ -40,7 +42,7 @@ function processFrame(id, filename, pixfmt, width, height) {
            ],
            function (error, stdout, stderr) {
               if (error !== null) {
-                console.log('ffmpeg error: ' + error);
+                console.log('cam=' + id + ', ffmpeg error: ' + error);
               }
               else {
                 //sendFrame(id, a[0] + '.jpg');

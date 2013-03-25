@@ -3,5 +3,5 @@ app/grabc/grab
 app/node_modules
 app/public/stylesheets/*.css
 app/public/images/thumbnails/*.jpg
-app/driver/nmjs-gv-*
+app/driver/nmjs-gv-800
 

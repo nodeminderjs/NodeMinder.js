@@ -37,9 +37,9 @@ function initCameras(camerasCfg, initArray, tmpDir, notificationCallback) {
       console.log(APP_DRIVER_DIR + 'nmjs-gv-800');
       var grab = spawn(APP_DRIVER_DIR + 'nmjs-gv-800',
           [
-           '-d', d,
-           '-i', a.join(','),
-           '-t', APP_SHM_DIR
+            '-d', d,
+            '-i', a.join(','),
+            '-t', APP_SHM_DIR
            ]);
 
       grab.device = d;
@@ -68,10 +68,10 @@ function initCameras(camerasCfg, initArray, tmpDir, notificationCallback) {
       });
       */
       
-      console.log('gv-800', d);
-      console.log(a.join(','));
-      console.log(initArray);
-      console.log('');
+      //console.log('gv-800', d);
+      //console.log(a.join(','));
+      //console.log(initArray);
+      //console.log('');
     }
   });
 }
