@@ -1,17 +1,10 @@
 /* 
  * Copyright NodeMinder.js
  */
-var fs    = require('fs');
-var spawn = require('child_process').spawn;
-var exec  = require('child_process').exec;
+var fs = require('fs');
+var execFile = require('child_process').execFile;
 
-var config = require('./config');
-var libjs  = require('./libjs');
-
-var FPS_UPDATE_TIME = 20;     // refresh update time for cameras not recording or in idle state
-var UPDATE_TMS_INTERVAL = 5;  // update tms and divs interval - every n seconds
-
-var cameras = {};
+var libjs = require('./libjs');
 
 function initCameras(tmpDir) {
   var camerasCfg = cfg.cameras;
@@ -35,15 +28,23 @@ exports.initCameras = initCameras;
 
 function processFrame(id, filename, pixfmt, width, height) {
   var a = filename.split('.');
-  exec('ffmpeg -f rawvideo -pix_fmt ' + pixfmt + ' -s ' + width + 'x' + height +
-       ' -i ' + APP_SHM_DIR + filename + ' -s 320x240 -y ' + APP_SHM_DIR + a[0] + '.jpg',
-       function (error, stdout, stderr) {
-    if (error !== null) {
-      console.log('ffmpeg error: ' + error);
-    }
-    else {
-      // sendFrame(cam, jpg, io, st, 1000/c.tms/c.div);
-    }
+  execFile(APP_FFMPEG, 
+           [
+             '-f', 'rawvideo',
+             '-pix_fmt', pixfmt,
+             '-s', width + 'x' + height,
+             '-i', APP_SHM_DIR + filename,
+             '-s', '320x240',
+             '-pix_fmt', 'yuvj420p',
+             '-y', APP_SHM_DIR + a[0] + '.jpg'
+           ],
+           function (error, stdout, stderr) {
+              if (error !== null) {
+                console.log('ffmpeg error: ' + error);
+              }
+              else {
+                //sendFrame(id, a[0] + '.jpg');
+              }
   });
 }
 

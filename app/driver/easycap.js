@@ -8,18 +8,18 @@ var DRIVER_ID = 'easycap';
 
 function initCameras(camerasCfg, initArray, tmpDir, notificationCallback) {
   exec('killall -u $USER nmjs-easycap', function (error, stdout, stderr) {
-    var i, c, s = '/';
+    var i, c, a = [];
 
     for (i in camerasCfg) {
       c = camerasCfg[i];
       if (c.driver.id == DRIVER_ID) {
-        s += c.id + '/' + c.driver.input + '/';
+        a.push(c.id + ':' + c.driver.input);
         initArray[i] = 1;
       }
     }
 
     console.log('easycap');
-    console.log(s);
+    console.log(a.join(','));
     console.log(initArray);
     console.log('');
   });

@@ -18,26 +18,18 @@ var app = express();
 var server = http.createServer(app),
     io = require('socket.io').listen(server, { log: false });
 
-var TMP_DIR = '/dev/shm/';  // temp dir to store grabbed frames and recording frames buffers
-var APP_DIR = __dirname;
-var THUMBNAILS_DIR = __dirname + '/public/images/thumbnails';
-var BASH_DIR = __dirname + '/scripts';
-
-var APP_DRIVER_DIR = __dirname + '/driver/'  // drivers dir
-var APP_SHM_DIR    = '/dev/shm/';            // shared memory dir to store grabbed frames
-
-exports.TMP_DIR = TMP_DIR;
-exports.APP_DIR = APP_DIR;
-exports.THUMBNAILS_DIR = THUMBNAILS_DIR;
-exports.BASH_DIR = BASH_DIR;
-
-GLOBAL.APP_DRIVER_DIR = APP_DRIVER_DIR;
-GLOBAL.APP_SHM_DIR = APP_SHM_DIR;
+GLOBAL.APP_DIR            = __dirname;
+GLOBAL.APP_THUMBNAILS_DIR = __dirname + '/public/images/thumbnails/';
+GLOBAL.APP_BASH_DIR       = __dirname + '/scripts/';
+GLOBAL.APP_DRIVER_DIR     = __dirname + '/driver/';
 
 /*
  * Read config file and initialize global cfg var
  */
 config.loadConfig();
+
+GLOBAL.APP_FFMPEG  = cfg.server.ffmpeg;
+GLOBAL.APP_SHM_DIR = cfg.server.shared_memory_dir; // shared memory dir to store grabbed frames
 
 // create custom grid dir
 dir = cfg.custom.dir;
@@ -48,20 +40,20 @@ if (!fs.existsSync(dir))
   fs.mkdirSync(dir);  // ToDo: change mode
 
 // create thumbnails dir
-if (!fs.existsSync(THUMBNAILS_DIR))
-  fs.mkdirSync(THUMBNAILS_DIR);  // ToDo: change mode
+if (!fs.existsSync(APP_THUMBNAILS_DIR))
+  fs.mkdirSync(APP_THUMBNAILS_DIR);  // ToDo: change mode
 
 /*
  * Initialize cameras
  */
-grab.initCameras(TMP_DIR);
+grab.initCameras(APP_SHM_DIR);
 sleepSync(100);
-//process.exit(0);
-
 
 // check if thumbnails exists, if not, create them
 setTimeout(function() {
-  exec(BASH_DIR+'/chthumb ' + THUMBNAILS_DIR + ' ' + BASH_DIR+'/mkthumb', function (error, stdout, stderr) {});
+  exec(APP_BASH_DIR+'/chthumb ' + APP_THUMBNAILS_DIR + ' ' + 
+                                  APP_BASH_DIR+'/mkthumb',
+                                  function (error, stdout, stderr) {});
 }, 2000);
 
 /*
