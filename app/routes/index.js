@@ -11,8 +11,7 @@ var thumb  = require('./thumb');
 
 exports.index = function(req, res) {
   res.render('index', { title: 'NodeMinder.js', 
-                        cameras: config.getCamerasCfg(),
-                        sorted:  config.getCamerasSortedArray() });
+                        cameras: cfg.cameras });
 };
 
 exports.grid = function(req, res) {

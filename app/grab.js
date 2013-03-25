@@ -6,7 +6,13 @@ var execFile = require('child_process').execFile;
 
 var libjs = require('./libjs');
 
-function initCameras(tmpDir) {
+var io;
+var serverName;
+
+function initCameras(socketio, tmpDir) {
+  io = socketio;
+  serverName = cfg.server.name;
+  
   var camerasCfg = cfg.cameras;
   var drivers = [];
 
@@ -45,7 +51,7 @@ function processFrame(id, filename, pixfmt, width, height) {
                 console.log('cam=' + id + ', ffmpeg error: ' + error);
               }
               else {
-                //sendFrame(id, a[0] + '.jpg');
+                sendFrame(id, a[0] + '.jpg');
               }
   });
 }
@@ -53,28 +59,20 @@ function processFrame(id, filename, pixfmt, width, height) {
 /*
  * Send jpg image to connected sockets
  */
-/*
-function sendFrame(cam, jpg, io, st, fps) {
+function sendFrame(cam, jpg) {
   fs.readFile(APP_SHM_DIR+jpg, 'base64', function(err, data) {
     //if (err) throw err;  // ToDo: log error
     if (err) return;
     
-    var s = (Math.round(fps * 10) / 10) + '.0';
-    s = s.substr(0,3);
-
     io.sockets.in(cam).emit('image', {
       server: serverName,
       camera: cam,
       time: libjs.formatDateTime(),
-      status: st,
-      fps: s,
-      //recStart: recStart,
       //jpg: 'data:image/gif;base64,' + data
       jpg: 'data:image/jpeg;base64,' + data
     });
   });
 }
-*/
 
 /*
  * Calculates the divisor from a required fps and the current receiving frames interval in ms

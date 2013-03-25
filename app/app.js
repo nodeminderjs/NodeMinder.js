@@ -46,7 +46,7 @@ if (!fs.existsSync(APP_THUMBNAILS_DIR))
 /*
  * Initialize cameras
  */
-grab.initCameras(APP_SHM_DIR);
+grab.initCameras(io, APP_SHM_DIR);
 sleepSync(100);
 
 // check if thumbnails exists, if not, create them
