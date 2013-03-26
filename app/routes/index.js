@@ -1,5 +1,5 @@
 /*
- * GET home page.
+ * Copyright NodeMinder.js
  */
 var fs     = require('fs');
 
@@ -20,9 +20,9 @@ exports.grid = function(req, res) {
   else
     var id = '%';    
 
-  var dir = config.getCustomCfg().grid;
+  var dir = cfg.server.custom_grid_dir;
   var fname = dir + id + '.json';
-
+  
   fs.readFile(fname, 'utf8', function(err, data) {
     //if (err) throw err;  // ToDo: log error instead of throw
     if (!err) {
@@ -30,17 +30,16 @@ exports.grid = function(req, res) {
       res.render('grid', { title: 'Grid', 
                            cameras: custom.cameras,
                            size_info: custom.size_info,
-                           cfg: config.getCamerasCfg()});
+                           cfg: CAMERAS_CFG});
     } else {
-      // ToDo: create grid with default cameras set
-      var sorted = config.getCamerasSortedArray();
-      //var camCfg = config.getCamerasCfg();
+      var sorted = cfg.cameras;
       var t = 0;
       var l = 0;
       var cameras = [];
       for (var i=0; i<sorted.length; i++) {
         cameras.push({
-          id: 'cam' + sorted[i],
+          server: cfg.server.name,
+          id: sorted[i].id,
           top: t,
           left: l,
           width: 320,
@@ -56,16 +55,15 @@ exports.grid = function(req, res) {
       res.render('grid', { title: 'Grid',
                            cameras: cameras,
                            size_info: {},
-                           cfg: config.getCamerasCfg()});
+                           cfg: CAMERAS_CFG });
     }
   });
 };
 
 exports.view = function(req, res) {
-  var cam = '0' + req.params.id;
-  cam = cam.substr(cam.length - 2, 2);
+  var cam = req.params.id;
   var cameras = [{
-    id: 'cam' + cam,
+    id: cfg.server.name + '-' + cam,
     top: 0,
     left: 0,
     width: 320,
@@ -73,8 +71,30 @@ exports.view = function(req, res) {
   }];
   res.render('grid', { title: 'View',
                        cameras: cameras,
-                       cfg: config.getCamerasCfg() });
+                       size_info: {},
+                       cfg: CAMERAS_CFG });
 };
+
+exports.saveCustomGrid = function(req, res) {
+  if (req.params.id)
+    var id = req.params.id;
+  else
+    var id = '%';    
+
+  var dir = cfg.server.custom_grid_dir;
+  var fname = dir + id + '.json';
+  fs.writeFile(fname, JSON.stringify(req.body, null, 4),
+               'utf8', function(err) {
+    //if (err) throw err;  // ToDo: log error instead of throw
+    if (!err)
+      res.send('ok');
+    else
+      res.send(err.message);
+  });
+}
+
+
+
 
 exports.events = function(req, res) {
   var camera = '0' + req.params.id;
@@ -114,24 +134,6 @@ exports.getVideosByDate = function(req, res) {
     } else {
       res.json([]);
     }
-  });
-}
-
-exports.saveCustomGrid = function(req, res) {
-  if (req.params.id)
-    var id = req.params.id;
-  else
-    var id = '%';    
-
-  var dir = config.getCustomCfg().grid;
-  var fname = dir + id + '.json';
-  fs.writeFile(fname, JSON.stringify(req.body, null, 4),
-               'utf8', function(err) {
-    //if (err) throw err;  // ToDo: log error instead of throw
-    if (!err)
-      res.send('ok');
-    else
-      res.send(err.message);
   });
 }
 

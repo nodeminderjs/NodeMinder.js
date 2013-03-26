@@ -14,6 +14,7 @@ function loadConfig() {
     var c = cfg.cameras[i];
     camerasCfg[c.id] = c;
   }
+  GLOBAL.CAMERAS_CFG = camerasCfg;
     
 }
 

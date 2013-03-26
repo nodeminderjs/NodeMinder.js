@@ -32,10 +32,10 @@ GLOBAL.APP_FFMPEG  = cfg.server.ffmpeg;
 GLOBAL.APP_SHM_DIR = cfg.server.shared_memory_dir; // shared memory dir to store grabbed frames
 
 // create custom grid dir
-dir = cfg.custom.dir;
+dir = cfg.server.custom_dir;
 if (!fs.existsSync(dir))
   fs.mkdirSync(dir);  // ToDo: change mode
-dir = cfg.custom.grid;
+dir = cfg.server.custom_grid_dir;
 if (!fs.existsSync(dir))
   fs.mkdirSync(dir);  // ToDo: change mode
 
@@ -51,9 +51,10 @@ sleepSync(100);
 
 // check if thumbnails exists, if not, create them
 setTimeout(function() {
-  exec(APP_BASH_DIR+'/chthumb ' + APP_THUMBNAILS_DIR + ' ' + 
-                                  APP_BASH_DIR+'/mkthumb',
-                                  function (error, stdout, stderr) {});
+  exec(APP_BASH_DIR+'chthumb ' + APP_THUMBNAILS_DIR + ' ' + 
+                                 APP_BASH_DIR+'mkthumb ' +
+                                 APP_SHM_DIR,
+                                 function (error, stdout, stderr) {});
 }, 2000);
 
 /*
@@ -111,8 +112,9 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('subscribe', function(data) {
     socket.emit('info', {
+      server: cfg.server.name,
       camera: data.camera,
-      cfg:    config.getCamCfg(data.camera)      
+      cfg:    CAMERAS_CFG[data.camera]      
     });
     socket.join(data.camera);
   });

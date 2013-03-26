@@ -25,7 +25,6 @@ do
     somagic-capture -n --sync=1 --iso-transfers=12 -i $inp -f $3 | ffmpeg -v quiet -f rawvideo -pix_fmt uyvy422 -s 720x480 -r ntsc -an -vf select="gte(n\,$ff)" -i pipe: -f image2 -pix_fmt bgr24 -s 320x240 -y -updatefirst 1 $2$cam-$buf.raw
     #don't remove the ,x after the next line!
     echo F,$cam,$cam-$buf.raw,320,240,x
-    #sleep .05
   done
   (( buf++ ))
   if [ "$buf" -gt 4 ]; then

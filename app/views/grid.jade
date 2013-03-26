@@ -9,18 +9,18 @@ block javascripts
   script(src='/javascripts/jquery-ui.custom.min.js')
   script(src='/socket.io/socket.io.js')
   script(src='/javascripts/lib.js')
-  script(src='/javascripts/view.js')
   script(src='/javascripts/grid.js')
 
 block top
 
 block content
-  div#cameras
+  #cameras
     each cam in cameras
+      - var id = cam.id;
+      - // if (cfg[id].alarm>0) classes += ' alarm'
+      - // if (cfg[id].registry.reg_on>0) classes += ' registry'
       - var classes = 'camera draggable';
-      - if (cfg[cam.id.substr(3,2)].alarm>0) classes += ' alarm'
-      - if (cfg[cam.id.substr(3,2)].registry.reg_on>0) classes += ' registry'
-      div(id="#{cam.id}", class="#{classes}", style="position:absolute; margin-left:0; margin-top:0; top:#{cam.top}px; left:#{cam.left}px;")
+      div(id="#{cam.server}-#{cam.id}", data-id="#{cam.id}", data-server="#{cam.server}", class="#{classes}", style="position:absolute; margin-left:0; margin-top:0; top:#{cam.top}px; left:#{cam.left}px;")
         img.resizable(src='#', width="#{cam.width}", height="#{cam.height}") 
         div.info
           div.time
@@ -29,13 +29,6 @@ block content
           div.descr
         div.color
   
-
-  //input#testButton(type="button", value="test")
-  //div.teste(style="position:absolute; top:700px; left:0;")
-  //  p#down down
-  //  p#up up
-  
-
   #div-context-menu
     div
       img(src='/images/nodeminderjs.png', width=102, height=40, alt='NodeMinder.js')
@@ -69,8 +62,6 @@ block content
   #alert-save-error.alert.error
     div Error saving customizations!
     .alert-msg
-
-  //#debug debug
 
   #alarm-dialog(title="Alarm")
     h3#alarm-datetime Date

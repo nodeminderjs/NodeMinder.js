@@ -99,6 +99,15 @@ $ npm install
 
 ## Configuration
 
+
+ToDo:
+
+Directories
+  custom dir
+Easycap
+
+
+
 Edit the configuration file [_nodeminderjs.conf_](https://github.com/nodeminderjs/NodeMinder.js/blob/master/app/config/nodeminderjs.conf) located at the _app/config_ folder to edit the server and cameras configuration options. This is a JSON formatted file containing the server port and cameras configuration options.
 
 Example:

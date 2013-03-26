@@ -1,3 +1,4 @@
+// ToDo: delete this file!
 var serverUrl = window.location.protocol + '//' + window.location.host;
 var socket;
 var alarmTimes = {};
