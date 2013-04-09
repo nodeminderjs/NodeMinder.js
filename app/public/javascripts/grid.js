@@ -57,7 +57,7 @@ $(function() {
 
     $(id + ' img').attr('src', data.jpg);
     $(id + ' .time').text(data.time);
-    //$(id + ' .fps').text(data.fps + ' fps');
+    $(id + ' .fps').text(data.fps + ' fps');
 
     /*
     var st = data.status;

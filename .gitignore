@@ -4,4 +4,5 @@ app/node_modules
 app/public/stylesheets/*.css
 app/public/images/thumbnails/*.jpg
 app/driver/nmjs-gv-800
+app/driver/nmjs-gv-800-read
 

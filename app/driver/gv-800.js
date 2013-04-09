@@ -5,45 +5,47 @@ var spawn = require('child_process').spawn;
 var exec  = require('child_process').exec;
 
 var DRIVER_ID = 'gv-800';
+var PROC_NAME = 'nmjs-gv-800-read';
 
 function initCameras(camerasCfg, initArray, tmpDir, notificationCallback) {
-  exec('killall -u $USER nmjs-gv-800', function (error, stdout, stderr) {
-    var devices = [];
-    var i, c, d, a; 
+  exec('killall -u $USER ' + PROC_NAME, function(error, stdout, stderr) {
+    var devices = [];  // devices
+    var cameras = [];  // cameras grouped by devices
+    var i, j, cfg, dev, cam; 
     
+    // initialize devices and cameras arrays
     for (i in camerasCfg) {
-      c = camerasCfg[i];
-      if (c.driver.id == DRIVER_ID && devices.indexOf(c.driver.device) < 0) {
-        devices.push(c.driver.device);
+      cfg = camerasCfg[i];
+      if (!cfg.disabled && cfg.driver.id == DRIVER_ID) {
+        j = devices.indexOf(cfg.driver.device);
+        if (j < 0) {
+          devices.push(cfg.driver.device);
+          cameras.push([cfg.id + ':' + cfg.driver.input]);
+        }
+        else {
+          cameras[j].push(cfg.id + ':' + cfg.driver.input);
+        }
+        initArray[i] = 1;
       }
     }
-    
+
+    // spawn child process for each device
     for (i in devices) {
-      d = devices[i];
-      a = [];
-
-      for (var i in camerasCfg) {
-        c = camerasCfg[i];
-        if (c.driver.id == DRIVER_ID && c.driver.device == d) {
-          a.push(c.id + ':' + c.driver.input);
-          initArray[i] = 1;
-        }
-      }
-
+      dev = devices[i];
+      cam = cameras[i];
+      
       /*
        * Spawn grab process for the device
        * ex.: ./nmjs-gv-800 -d /dev/video0 -i 01:0,05:1,09:2,13:3 -t /dev/shm/ 
        */
-      console.log(APP_DRIVER_DIR + 'nmjs-gv-800');
-      var grab = spawn(APP_DRIVER_DIR + 'nmjs-gv-800',
+      console.log(APP_DRIVER_DIR + PROC_NAME);
+      var grab = spawn(APP_DRIVER_DIR + PROC_NAME,
           [
-            '-d', d,
-            '-i', a.join(','),
+            '-d', dev,
+            '-i', cam.join(','),
             '-t', APP_SHM_DIR
            ]);
-
-      grab.device = d;
-      console.log('spawn: ' + grab.device);
+      grab.device = dev;
 
       /*
        * Grab events
@@ -54,6 +56,10 @@ function initCameras(camerasCfg, initArray, tmpDir, notificationCallback) {
         notificationCallback(a[1], a[2], 'bgr24', a[3], a[4]);  
       });
 
+      grab.stderr.on('data', function(data) {
+        console.log('grab gv-800 stderr: ' + data);
+      });
+
       /*
       grab.on('exit', function(code, signal) {
         //console.log(camSpawn[grab.camera].pid);
@@ -62,16 +68,7 @@ function initCameras(camerasCfg, initArray, tmpDir, notificationCallback) {
           grabFrame(io, grab.device);
         }, 5000);  // ToDo: parameterize this!
       });
-
-      grab.stderr.on('data', function(data) {
-        console.log('grab stderr: ' + data);
-      });
       */
-      
-      //console.log('gv-800', d);
-      //console.log(a.join(','));
-      //console.log(initArray);
-      //console.log('');
     }
   });
 }

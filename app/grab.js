@@ -9,6 +9,10 @@ var libjs = require('./libjs');
 var io;
 var serverName;
 
+var camInfo = {};
+
+var FPS_UPDATE_INT = 10000;  // fps update interval in ms 
+
 function initCameras(socketio, tmpDir) {
   io = socketio;
   serverName = cfg.server.name;
@@ -18,13 +22,17 @@ function initCameras(socketio, tmpDir) {
 
   var initArray = [];
   for (var i in camerasCfg) {
-    initArray.push(0);
     var c = camerasCfg[i];
+    var t = Date.now();
+    camInfo[c.id] = { 
+      'fps' : {'fps':0, 'count':0, 'time':t }
+    };
+    initArray.push(0);
     if (drivers.indexOf(c.driver.id) < 0) {
       drivers.push(c.driver.id);
     }
   }
-  console.log(drivers);
+
   for (i in drivers) {
     var driver = require('./driver/' + drivers[i]);
     driver.initCameras(camerasCfg, initArray, tmpDir, processFrame);
@@ -32,13 +40,16 @@ function initCameras(socketio, tmpDir) {
 }
 exports.initCameras = initCameras;
 
+/*
+ * Process frame read from the child process
+ */
 function processFrame(id, filename, pixfmt, width, height) {
   var a = filename.split('.');
-  // ffmpeg -v quiet -f rawvideo -pix_fmt bgr24 -s 320x240 -i /dev/shm/17-4.raw -s 320x240 -pix_fmt yuvj420p -y /dev/shm/18-4.jpg
+  // ffmpeg -v quiet -f image2 -pix_fmt bgr24 -s 320x240 -i /dev/shm/17-4.raw -s 320x240 -pix_fmt yuvj420p -y /dev/shm/18-4.jpg
   execFile(APP_FFMPEG, 
            [
              '-v', 'quiet',      
-             '-f', 'rawvideo',
+             '-f', 'image2',      // rawvideo or image2
              '-pix_fmt', pixfmt,
              '-s', width + 'x' + height,
              '-i', APP_SHM_DIR + filename,
@@ -53,7 +64,8 @@ function processFrame(id, filename, pixfmt, width, height) {
               else {
                 sendFrame(id, a[0] + '.jpg');
               }
-  });
+           }
+  );
 }
 
 /*
@@ -64,10 +76,22 @@ function sendFrame(cam, jpg) {
     //if (err) throw err;  // ToDo: log error
     if (err) return;
     
+    var info = camInfo[cam];
+    var fps = info.fps;
+    fps.count++;
+    var t = Date.now();
+    if (t > (fps.time + FPS_UPDATE_INT)) {
+      // update fps
+      fps.fps = fps.count / (t - fps.time) * 1000;
+      fps.time = t;
+      fps.count = 0;
+    }
+    
     io.sockets.in(cam).emit('image', {
       server: serverName,
       camera: cam,
       time: libjs.formatDateTime(),
+      fps: fps.fps.toString().substr(0,3),
       //jpg: 'data:image/gif;base64,' + data
       jpg: 'data:image/jpeg;base64,' + data
     });
