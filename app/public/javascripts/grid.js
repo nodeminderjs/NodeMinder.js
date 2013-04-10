@@ -59,15 +59,12 @@ $(function() {
     $(id + ' .time').text(data.time);
     $(id + ' .fps').text(data.fps + ' fps');
 
-    /*
-    var st = data.status;
-    if (st == 'C') {
+    if (data.status == '1') {
       $(id+' .info').addClass('change');
     }
     else {
       $(id+' .info').removeClass('change');
     }
-    */
   });
 
   $('#alert-disconnect').dialog({

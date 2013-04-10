@@ -11,7 +11,8 @@ var serverName;
 
 var camInfo = {};
 
-var FPS_UPDATE_INT = 10000;  // fps update interval in ms 
+var APP_CHANGE;              // app to detect change between two frames
+var FPS_UPDATE_INT = 10000;  // fps update interval in ms
 
 function initCameras(socketio, tmpDir) {
   io = socketio;
@@ -25,7 +26,8 @@ function initCameras(socketio, tmpDir) {
     var c = camerasCfg[i];
     var t = Date.now();
     camInfo[c.id] = { 
-      'fps' : {'fps':0, 'count':0, 'time':t }
+      'fps'    : {'cfg':c.fps, 'fps':0, 'count':0, 'time':t},
+      'change' : {'cfg':c.change_detect, 'count':0, 'frame':'', 'status':'0'}
     };
     initArray.push(0);
     if (drivers.indexOf(c.driver.id) < 0) {
@@ -37,6 +39,8 @@ function initCameras(socketio, tmpDir) {
     var driver = require('./driver/' + drivers[i]);
     driver.initCameras(camerasCfg, initArray, tmpDir, processFrame);
   }
+  
+  APP_CHANGE = APP_DIR + '/change/change';  // app to detect change between two frames
 }
 exports.initCameras = initCameras;
 
@@ -66,6 +70,28 @@ function processFrame(id, filename, pixfmt, width, height) {
               }
            }
   );
+  
+  // process change detect
+  if (camInfo[id].change.cfg.on) {
+    var c = camInfo[id].change;
+    if (++c.count == c.cfg.frames_int) {
+      c.count = 0;
+      if (c.frame) {
+        execFile(APP_CHANGE, 
+           [APP_SHM_DIR + c.frame, APP_SHM_DIR + filename, c.cfg.pixel_limit, c.cfg.image_limit],      
+           function (error, stdout, stderr) {
+             if (error !== null) {
+               console.log('cam=' + id + ', change detect error: ' + error);
+             }
+             else {
+               c.status = stdout.toString();
+             }
+           }
+        );
+      }
+      c.frame = filename;
+    }
+  }
 }
 
 /*
@@ -92,7 +118,7 @@ function sendFrame(cam, jpg) {
       camera: cam,
       time: libjs.formatDateTime(),
       fps: fps.fps.toString().substr(0,3),
-      //jpg: 'data:image/gif;base64,' + data
+      status: info.change.status,
       jpg: 'data:image/jpeg;base64,' + data
     });
   });
