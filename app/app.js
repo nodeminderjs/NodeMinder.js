@@ -29,7 +29,7 @@ GLOBAL.APP_DRIVER_DIR     = __dirname + '/driver/';
 config.loadConfig();
 
 GLOBAL.APP_FFMPEG  = cfg.server.ffmpeg;
-GLOBAL.APP_SHM_DIR = cfg.server.shared_memory_dir; // shared memory dir to store grabbed frames
+GLOBAL.APP_SHM_DIR = cfg.server.shm_dir; // shared memory dir to store grabbed frames
 
 // create custom grid dir
 dir = cfg.server.custom_dir;
@@ -43,10 +43,14 @@ if (!fs.existsSync(dir))
 if (!fs.existsSync(APP_THUMBNAILS_DIR))
   fs.mkdirSync(APP_THUMBNAILS_DIR);  // ToDo: change mode
 
-/*
- * Initialize cameras
- */
-grab.initCameras(io, APP_SHM_DIR);
+// remove temp files from /dev/shm
+exec('rm ' + APP_SHM_DIR + '*', function(error, stdout, stderr) {
+  /*
+   * Initialize cameras
+   */
+  grab.initCameras(io, APP_SHM_DIR);
+});
+
 sleepSync(100);
 
 // check if thumbnails exists, if not, create them
