@@ -1,5 +1,17 @@
 ![NodeMinder.js logo](http://2.bp.blogspot.com/-yLlUNGSrJ5I/UUNr-qIoaeI/AAAAAAAAAEY/J13b7sezCzg/s1600/banner03.jpg)
 
+###Warning
+    
+    This project is temporarily suspended and hope I can resume it soon.
+
+    I think the next implementations should be:
+
+    - Webcam support
+    - Client to perform remote recordings
+
+    The branch 0.1.0 has a newer and more complete version than the master branch.
+
+
 # NodeMinder.js
 
 Linux video camera security and surveillance solution based on ZoneMinder and developed on top of a node.js stack.
